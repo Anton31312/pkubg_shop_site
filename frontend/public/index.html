@@ -2,13 +2,57 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    
+    <!-- Favicon для разных устройств и браузеров -->
+    <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png" />
+    
+    <!-- Для старых браузеров -->
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    
+    <!-- Для мобильных устройств iOS -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    
+    <!-- Для Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/android-chrome-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="%PUBLIC_URL%/android-chrome-512x512.png" />
+    
+    <!-- Для Windows 8/10 плиток -->
+    <meta name="msapplication-TileImage" content="%PUBLIC_URL%/android-chrome-192x192.png" />
+    <meta name="msapplication-TileColor" content="#2c5530" />
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#2c5530" />
     <meta
       name="description"
       content="Интернет-магазин низкобелковой и безглютеновой продукции Pkubg"
     />
+    
+    <!-- Open Graph мета-теги для социальных сетей -->
+    <meta property="og:title" content="Pkubg - Низкобелковая и безглютеновая продукция" />
+    <meta property="og:description" content="Интернет-магазин низкобелковой и безглютеновой продукции Pkubg" />
+    <meta property="og:image" content="%PUBLIC_URL%/android-chrome-512x512.png" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card мета-теги -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pkubg - Низкобелковая и безглютеновая продукция" />
+    <meta name="twitter:description" content="Интернет-магазин низкобелковой и безглютеновой продукции Pkubg" />
+    <meta name="twitter:image" content="%PUBLIC_URL%/android-chrome-512x512.png" />
+    
     <title>Pkubg - Низкобелковая и безглютеновая продукция</title>
   </head>
   <body>

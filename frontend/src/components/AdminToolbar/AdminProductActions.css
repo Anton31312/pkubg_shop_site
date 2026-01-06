@@ -1,0 +1,188 @@
+.admin-product-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.product-card:hover .admin-product-actions {
+  opacity: 1;
+}
+
+.actions-overlay {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.actions-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  color: #333;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.edit-btn:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+}
+
+.toggle-btn.active:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+}
+
+.toggle-btn.inactive:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.stock-btn:hover:not(:disabled) {
+  background: #17a2b8;
+  color: white;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.product-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.status-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.status-value {
+  font-weight: 600;
+}
+
+.status-value.active {
+  color: #28a745;
+}
+
+.status-value.inactive {
+  color: #dc3545;
+}
+
+.status-value.in-stock {
+  color: #28a745;
+}
+
+.status-value.low-stock {
+  color: #ffc107;
+}
+
+.status-value.out-of-stock {
+  color: #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .actions-overlay {
+    padding: 8px;
+  }
+  
+  .quick-actions {
+    gap: 6px;
+  }
+  
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  
+  .admin-badge {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+  }
+  
+  .status-item {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-actions {
+    gap: 4px;
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .product-status {
+    gap: 2px;
+  }
+}

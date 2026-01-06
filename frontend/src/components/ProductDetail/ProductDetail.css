@@ -1,0 +1,640 @@
+/* Product Detail Styles */
+
+.product-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Back to Catalog Link */
+.back-to-catalog {
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.breadcrumbs a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs span {
+  color: #6c757d;
+}
+
+/* Loading and Error States */
+.product-detail-loading,
+.product-detail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2c5530;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.back-btn {
+  background: #2c5530;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.back-btn:hover {
+  background: #1e3a21;
+}
+
+/* Product Main Section */
+.product-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Product Images */
+.product-images {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main-image {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 3rem;
+}
+
+.image-placeholder p {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.image-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.thumbnail {
+  width: 80px;
+  aspect-ratio: 3/4;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  transition: border-color 0.2s;
+}
+
+.thumbnail:hover,
+.thumbnail.active {
+  border-color: #2c5530;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Product Info */
+.product-info h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.product-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.badge.gluten-free {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.low-protein {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.product-price {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c5530;
+  margin-bottom: 1rem;
+}
+
+.product-stock {
+  margin-bottom: 2rem;
+}
+
+.in-stock {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.out-of-stock {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Purchase Controls */
+.purchase-controls {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.quantity-selector {
+  margin-bottom: 1.5rem;
+}
+
+.quantity-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-controls button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-controls button:hover:not(:disabled) {
+  background: #f8f9fa;
+}
+
+.quantity-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantity-controls input {
+  width: 80px;
+  height: 40px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  background: #2c5530;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background: #1e3a21;
+}
+
+.add-to-cart-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.product-summary {
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+/* Product Tabs */
+.product-tabs {
+  margin-bottom: 3rem;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6c757d;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: #2c5530;
+}
+
+.tab-btn.active {
+  color: #2c5530;
+  border-bottom-color: #2c5530;
+}
+
+.tab-content {
+  min-height: 200px;
+}
+
+.tab-panel {
+  line-height: 1.6;
+}
+
+/* Nutritional Info */
+.nutritional-info h4,
+.dietary-info h4,
+.allergens-info h4,
+.storage-info h4 {
+  color: #2c5530;
+  margin-bottom: 1rem;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nutrition-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.nutrition-label {
+  font-weight: 500;
+}
+
+.nutrition-value {
+  color: #2c5530;
+  font-weight: 600;
+}
+
+/* Dietary Features */
+.dietary-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dietary-badge {
+  background: #d4edda;
+  color: #155724;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+/* Allergens */
+.allergens-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.allergen-badge {
+  background: #fff3cd;
+  color: #856404;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  border: 1px solid #ffeaa7;
+}
+
+/* Storage Info */
+.storage-info p {
+  margin-bottom: 0.5rem;
+}
+
+/* Related Products */
+.related-products {
+  margin-top: 4rem;
+}
+
+.related-products h2 {
+  color: #2c5530;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-detail {
+    padding: 1rem;
+  }
+
+  .product-main {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .product-info h1 {
+    font-size: 1.5rem;
+  }
+
+  .product-price {
+    font-size: 1.5rem;
+  }
+
+  .tab-buttons {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .related-products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumbs {
+    font-size: 0.8rem;
+  }
+
+  .main-image {
+    aspect-ratio: 3/4;
+  }
+
+  .purchase-controls {
+    padding: 1rem;
+  }
+
+  .quantity-controls {
+    justify-content: center;
+  }
+}
+/* Manufacturer Info */
+.product-manufacturer {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #2c5530;
+}
+
+.manufacturer-label {
+  font-weight: 600;
+  color: #495057;
+  margin-right: 0.5rem;
+}
+
+.manufacturer-name {
+  color: #2c5530;
+  font-weight: 500;
+}
+
+/* Composition Info */
+.composition-info {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.composition-info h4 {
+  color: #2c5530;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.composition-text {
+  line-height: 1.6;
+  color: #495057;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* Storage Info */
+.storage-info {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.storage-info h4 {
+  color: #2c5530;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.storage-text {
+  line-height: 1.6;
+  color: #495057;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.storage-info p {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.storage-info p:last-child {
+  margin-bottom: 0;
+}
+
+.storage-info strong {
+  color: #2c5530;
+  font-weight: 600;
+}
+
+/* Enhanced Tab Content */
+.tab-panel {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments for new elements */
+@media (max-width: 768px) {
+  .product-manufacturer {
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .manufacturer-label,
+  .manufacturer-name {
+    display: block;
+  }
+  
+  .manufacturer-label {
+    margin-bottom: 0.25rem;
+  }
+  
+  .composition-info,
+  .storage-info {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .composition-info h4,
+  .storage-info h4 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .composition-info,
+  .storage-info {
+    padding: 0.75rem;
+  }
+  
+  .composition-text,
+  .storage-text {
+    font-size: 0.9rem;
+  }
+}
+/* Stock error message */
+.stock-error-message {
+  background: #dc3545;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: slideInDown 0.3s ease-out;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

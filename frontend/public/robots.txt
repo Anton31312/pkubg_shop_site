@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow: /admin
+Disallow: /profile
+Disallow: /cart
+Disallow: /checkout
+Allow: /
+Allow: /products
+Allow: /articles
+Allow: /about
+Allow: /contact
+
+Sitemap: https://pkubg.ru/sitemap.xml

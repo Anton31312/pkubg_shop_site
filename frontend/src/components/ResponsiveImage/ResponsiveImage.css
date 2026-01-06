@@ -1,0 +1,137 @@
+/* Responsive Image Component */
+
+.responsive-image-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
+.responsive-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.responsive-image.loading {
+  opacity: 0;
+}
+
+.responsive-image.loaded {
+  opacity: 1;
+}
+
+.responsive-image.error {
+  opacity: 0;
+}
+
+/* Image skeleton loader */
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-shimmer {
+  width: 100%;
+  height: 100%;
+  background: inherit;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Placeholder styles */
+.responsive-image.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+}
+
+.placeholder-text {
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-sm);
+}
+
+/* Aspect ratio support for older browsers */
+@supports not (aspect-ratio: 1 / 1) {
+  .responsive-image-container[style*="aspect-ratio"] {
+    position: relative;
+    height: 0;
+  }
+  
+  .responsive-image-container[style*="aspect-ratio: 16 / 9"] {
+    padding-bottom: 56.25%;
+  }
+  
+  .responsive-image-container[style*="aspect-ratio: 4 / 3"] {
+    padding-bottom: 75%;
+  }
+  
+  .responsive-image-container[style*="aspect-ratio: 1 / 1"] {
+    padding-bottom: 100%;
+  }
+  
+  .responsive-image-container[style*="aspect-ratio"] .responsive-image,
+  .responsive-image-container[style*="aspect-ratio"] .image-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .responsive-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .responsive-image {
+    transition: none;
+  }
+  
+  .image-skeleton {
+    animation: none;
+    background: #f0f0f0;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .responsive-image-container {
+    background-color: #374151;
+  }
+  
+  .responsive-image.placeholder {
+    background-color: #374151;
+    color: #9ca3af;
+    border-color: #4b5563;
+  }
+  
+  .image-skeleton {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+  }
+}

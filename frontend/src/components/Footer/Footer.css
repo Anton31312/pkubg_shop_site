@@ -1,0 +1,162 @@
+.footer {
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+  padding: 2rem 0;
+  margin-top: auto;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.footer-container {
+  width: 100%;
+  max-width: var(--container-3xl);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-copyright {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.footer-copyright span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-copyright span::before {
+  content: '©';
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.footer-social {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.social-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.social-link.telegram:hover {
+  background: rgba(0, 136, 204, 0.2);
+  border-color: #0088cc;
+}
+
+.social-link.ozon:hover {
+  background: rgba(0, 91, 255, 0.2);
+  border-color: #005bff;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: all 0.2s ease;
+  opacity: 0.9;
+}
+
+.social-link:hover .social-icon {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 767px) {
+  .footer {
+    padding: var(--space-lg) 0;
+  }
+  
+  .footer-container {
+    padding: 0 var(--space-sm);
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-md);
+  }
+  
+  .footer-copyright {
+    order: 2;
+    font-size: var(--text-sm);
+  }
+  
+  .footer-social {
+    order: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 479px) {
+  .footer {
+    padding: var(--space-md) 0;
+  }
+  
+  .footer-container {
+    padding: 0 var(--space-xs);
+  }
+  
+  .footer-content {
+    gap: var(--space-sm);
+  }
+  
+  .footer-copyright {
+    font-size: var(--text-xs);
+  }
+  
+  .social-link {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .social-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  .social-link {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .social-link:hover {
+    transform: none;
+  }
+  
+  .social-link:active {
+    transform: scale(0.95);
+  }
+}

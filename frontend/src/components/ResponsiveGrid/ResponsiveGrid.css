@@ -1,0 +1,75 @@
+/* Responsive Grid Component */
+
+.responsive-grid {
+  display: grid;
+  width: 100%;
+}
+
+/* Gap variations */
+.responsive-grid.gap-xs {
+  gap: var(--space-xs);
+}
+
+.responsive-grid.gap-sm {
+  gap: var(--space-sm);
+}
+
+.responsive-grid.gap-md {
+  gap: var(--space-md);
+}
+
+.responsive-grid.gap-lg {
+  gap: var(--space-lg);
+}
+
+.responsive-grid.gap-xl {
+  gap: var(--space-xl);
+}
+
+/* Ensure grid items don't overflow */
+.responsive-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 479px) {
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .responsive-grid[style*="repeat(auto-fit"] {
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)) !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-grid[style*="repeat(auto-fit"] {
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)) !important;
+  }
+}
+
+/* Animation for grid items */
+.responsive-grid > * {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disable animations on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .responsive-grid > * {
+    animation: none;
+  }
+}

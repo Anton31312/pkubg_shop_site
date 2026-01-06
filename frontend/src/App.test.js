@@ -16,12 +16,12 @@ const renderWithProviders = (component) => {
 
 test('renders Pkubg header', () => {
   renderWithProviders(<App />);
-  const headerElement = screen.getByText(/Pkubg - Интернет-магазин/i);
+  const headerElement = screen.getByText(/Pkubg/i);
   expect(headerElement).toBeInTheDocument();
 });
 
-test('renders product description', () => {
+test('renders catalog page', () => {
   renderWithProviders(<App />);
-  const descriptionElement = screen.getByText(/Низкобелковая и безглютеновая продукция/i);
-  expect(descriptionElement).toBeInTheDocument();
+  const catalogElement = screen.getByText(/Каталог товаров/i);
+  expect(catalogElement).toBeInTheDocument();
 });

@@ -1,0 +1,326 @@
+.about-page {
+  min-height: 80vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 3rem 0;
+}
+
+.about-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.about-header::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(44, 85, 48, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.about-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  margin: 0;
+  text-align: center;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.about-intro {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.intro-text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #2d3748;
+  margin: 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.about-section {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #4a5568;
+  margin: 0;
+}
+
+.about-features {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.features-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c5530;
+  margin: 0 0 1.5rem 0;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(44, 85, 48, 0.05);
+  border-radius: 12px;
+  border-left: 4px solid #2c5530;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.feature-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.feature-content strong {
+  color: #2c5530;
+  font-weight: 600;
+}
+
+.about-mission {
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(44, 85, 48, 0.3);
+}
+
+.mission-text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 500;
+}
+
+.about-brands {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.brands-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c5530;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.brand-item {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c5530;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.brand-item:hover {
+  border-color: #2c5530;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 85, 48, 0.2);
+}
+
+.about-conditions {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.conditions-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c5530;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.condition-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(44, 85, 48, 0.05) 0%, rgba(30, 58, 33, 0.05) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(44, 85, 48, 0.1);
+  transition: all 0.3s ease;
+}
+
+.condition-item:hover {
+  background: linear-gradient(135deg, rgba(44, 85, 48, 0.1) 0%, rgba(30, 58, 33, 0.1) 100%);
+  border-color: rgba(44, 85, 48, 0.2);
+  transform: translateY(-1px);
+}
+
+.condition-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.condition-item span {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .about-page {
+    padding: 2rem 0;
+  }
+  
+  .about-container {
+    padding: 0 1rem;
+  }
+  
+  .about-title {
+    font-size: 2rem;
+  }
+  
+  .about-content {
+    gap: 2rem;
+  }
+  
+  .about-intro,
+  .about-section,
+  .about-features,
+  .about-mission,
+  .about-brands,
+  .about-conditions {
+    padding: 1.5rem;
+  }
+  
+  .intro-text {
+    font-size: 1.1rem;
+  }
+  
+  .section-text {
+    font-size: 1rem;
+  }
+  
+  .mission-text {
+    font-size: 1.1rem;
+  }
+  
+  .brands-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  
+  .conditions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-container {
+    padding: 0 0.75rem;
+  }
+  
+  .about-title {
+    font-size: 1.75rem;
+  }
+  
+  .about-intro,
+  .about-section,
+  .about-features,
+  .about-mission,
+  .about-brands,
+  .about-conditions {
+    padding: 1.25rem;
+  }
+  
+  .feature-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .feature-icon {
+    margin-top: 0;
+  }
+  
+  .brands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .brand-item {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}

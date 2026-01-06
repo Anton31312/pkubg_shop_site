@@ -1,0 +1,380 @@
+.checkout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px 0;
+}
+
+.checkout-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.checkout-header {
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(44, 85, 48, 0.2);
+  text-align: center;
+}
+
+.checkout-header h1 {
+  margin: 0 0 20px 0;
+  color: white;
+  font-size: 2rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c5530;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-step h3 {
+  margin: 0 0 25px 0;
+  color: #2c5530;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #2c5530;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2c5530;
+  box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Button Styles */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(44, 85, 48, 0.4);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-select {
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+  border: none;
+}
+
+.btn-select:hover {
+  background: linear-gradient(135deg, #1e3a21 0%, #2c5530 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(44, 85, 48, 0.3);
+}
+
+.btn-large {
+  padding: 15px 30px;
+  font-size: 16px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Delivery Points */
+.delivery-points {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.delivery-point {
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.delivery-point:hover {
+  border-color: #2c5530;
+  box-shadow: 0 2px 10px rgba(44, 85, 48, 0.1);
+}
+
+.point-info {
+  flex: 1;
+}
+
+.point-info h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.point-address {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.point-details {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+}
+
+.point-hours {
+  color: #555;
+}
+
+.point-cost {
+  color: #2c5530;
+  font-weight: 600;
+}
+
+/* Order Summary */
+.order-summary {
+  margin-bottom: 30px;
+}
+
+.summary-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.summary-section:last-child {
+  border-bottom: none;
+}
+
+.summary-section h4 {
+  margin: 0 0 15px 0;
+  color: #2c5530;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.item-name {
+  flex: 1;
+  color: #333;
+}
+
+.item-quantity {
+  color: #666;
+  margin: 0 15px;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #333;
+}
+
+.delivery-info p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.total-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.total-line:last-child {
+  margin-bottom: 0;
+}
+
+.total-final {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c5530;
+  padding-top: 15px;
+  border-top: 2px solid #2c5530;
+}
+
+.checkout-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Error Message */
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c33;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .checkout {
+    padding: 10px 0;
+  }
+  
+  .checkout-container {
+    padding: 0 10px;
+  }
+  
+  .checkout-header {
+    padding: 20px;
+  }
+  
+  .checkout-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .step-indicator {
+    gap: 15px;
+  }
+  
+  .step {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .checkout-content {
+    padding: 20px;
+  }
+  
+  .delivery-point {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .point-details {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .checkout-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .checkout-actions .btn {
+    width: 100%;
+  }
+  
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
