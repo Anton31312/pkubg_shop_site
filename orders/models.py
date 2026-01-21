@@ -100,8 +100,9 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
-    delivery_method = models.CharField(max_length=50)
+    delivery_method = models.CharField(max_length=50, default='courier')
     delivery_tracking = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True, verbose_name='Комментарий к заказу')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

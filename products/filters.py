@@ -12,11 +12,8 @@ class ProductFilter(django_filters.FilterSet):
     # Search by name and description
     search = django_filters.CharFilter(method='filter_search', label='Search')
     
-    # Category filtering
-    category = django_filters.ModelChoiceFilter(
-        queryset=Category.objects.filter(is_active=True),
-        label='Category'
-    )
+    # Category filtering (supports multiple categories separated by comma)
+    category = django_filters.CharFilter(method='filter_category', label='Category')
     
     # Dietary filters
     is_gluten_free = django_filters.BooleanFilter(label='Gluten Free')
@@ -26,8 +23,8 @@ class ProductFilter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name='price', lookup_expr='gte', label='Min Price')
     max_price = django_filters.NumberFilter(field_name='price', lookup_expr='lte', label='Max Price')
     
-    # Manufacturer filtering
-    manufacturer = django_filters.CharFilter(field_name='manufacturer', lookup_expr='iexact', label='Manufacturer')
+    # Manufacturer filtering (supports multiple manufacturers separated by comma)
+    manufacturer = django_filters.CharFilter(method='filter_manufacturer', label='Manufacturer')
     
     # Stock availability
     in_stock = django_filters.BooleanFilter(method='filter_in_stock', label='In Stock')
@@ -43,6 +40,20 @@ class ProductFilter(django_filters.FilterSet):
                 models.Q(name__icontains=value) | 
                 models.Q(description__icontains=value)
             )
+        return queryset
+    
+    def filter_category(self, queryset, name, value):
+        """Filter products by category(ies). Supports comma-separated values."""
+        if value:
+            category_ids = [int(c.strip()) for c in value.split(',') if c.strip().isdigit()]
+            return queryset.filter(category_id__in=category_ids)
+        return queryset
+    
+    def filter_manufacturer(self, queryset, name, value):
+        """Filter products by manufacturer(s). Supports comma-separated values."""
+        if value:
+            manufacturers = [m.strip() for m in value.split(',')]
+            return queryset.filter(manufacturer__in=manufacturers)
         return queryset
     
     def filter_in_stock(self, queryset, name, value):

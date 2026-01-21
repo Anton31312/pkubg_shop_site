@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мониторинг - Pkubg E-commerce</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .metric-card.warning {
+            border-left-color: #f39c12;
+        }
+        
+        .metric-card.error {
+            border-left-color: #e74c3c;
+        }
+        
+        .metric-card.success {
+            border-left-color: #27ae60;
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-subtitle {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .charts-section {
+            margin-top: 2rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .alerts-section {
+            margin-top: 2rem;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #856404;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy {
+            background-color: #27ae60;
+        }
+        
+        .status-warning {
+            background-color: #f39c12;
+        }
+        
+        .status-error {
+            background-color: #e74c3c;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 Мониторинг системы Pkubg</h1>
+    </div>
+    
+    <div class="container">
+        <div id="loading" class="loading">
+            Загрузка данных мониторинга...
+        </div>
+        
+        <div id="content" style="display: none;">
+            <!-- Alerts Section -->
+            <div id="alerts-section" class="alerts-section"></div>
+            
+            <!-- Main Metrics -->
+            <div class="metrics-grid" id="metrics-grid">
+                <!-- Metrics will be populated by JavaScript -->
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-title">📊 Запросы к API (последний час)</div>
+                    <canvas id="requestsChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">⚠️ Ошибки (последний час)</div>
+                    <canvas id="errorsChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">💻 Использование ресурсов</div>
+                    <canvas id="systemChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="refresh-info">
+            Данные обновляются каждые 30 секунд
+        </div>
+    </div>
+
+    <script>
+        let requestsChart, errorsChart, systemChart;
+        
+        // Initialize charts
+        function initCharts() {
+            const ctx1 = document.getElementById('requestsChart').getContext('2d');
+            requestsChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Запросы в минуту',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            const ctx2 = document.getElementById('errorsChart').getContext('2d');
+            errorsChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Ошибки в минуту',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            const ctx3 = document.getElementById('systemChart').getContext('2d');
+            systemChart = new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CPU', 'Память', 'Диск'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#3498db', '#2ecc71', '#f39c12']
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+        
+        // Update metrics display
+        function updateMetrics(data) {
+            const metricsGrid = document.getElementById('metrics-grid');
+            const apiMetrics = data.api_metrics;
+            const errorMetrics = data.error_metrics;
+            const systemMetrics = data.system_metrics;
+            
+            // Calculate error rate
+            const errorRate = apiMetrics.total_requests > 0 
+                ? (errorMetrics.total_errors / apiMetrics.total_requests * 100).toFixed(2)
+                : 0;
+            
+            metricsGrid.innerHTML = `
+                <div class="metric-card success">
+                    <div class="metric-title">Всего запросов</div>
+                    <div class="metric-value">${apiMetrics.total_requests}</div>
+                    <div class="metric-subtitle">за последний час</div>
+                </div>
+                
+                <div class="metric-card ${errorRate > 5 ? 'error' : 'success'}">
+                    <div class="metric-title">Процент ошибок</div>
+                    <div class="metric-value">${errorRate}%</div>
+                    <div class="metric-subtitle">${errorMetrics.total_errors} ошибок</div>
+                </div>
+                
+                <div class="metric-card ${apiMetrics.avg_response_time > 2000 ? 'warning' : 'success'}">
+                    <div class="metric-title">Среднее время ответа</div>
+                    <div class="metric-value">${apiMetrics.avg_response_time}</div>
+                    <div class="metric-subtitle">миллисекунд</div>
+                </div>
+                
+                <div class="metric-card ${systemMetrics.cpu_percent > 80 ? 'warning' : 'success'}">
+                    <div class="metric-title">Загрузка CPU</div>
+                    <div class="metric-value">${systemMetrics.cpu_percent || 0}%</div>
+                    <div class="metric-subtitle">текущая загрузка</div>
+                </div>
+                
+                <div class="metric-card ${systemMetrics.memory_percent > 85 ? 'warning' : 'success'}">
+                    <div class="metric-title">Использование памяти</div>
+                    <div class="metric-value">${systemMetrics.memory_percent || 0}%</div>
+                    <div class="metric-subtitle">от общего объема</div>
+                </div>
+                
+                <div class="metric-card ${systemMetrics.disk_percent > 90 ? 'error' : 'success'}">
+                    <div class="metric-title">Использование диска</div>
+                    <div class="metric-value">${systemMetrics.disk_percent || 0}%</div>
+                    <div class="metric-subtitle">от общего объема</div>
+                </div>
+            `;
+        }
+        
+        // Update charts
+        function updateCharts(data) {
+            const apiMetrics = data.api_metrics;
+            const errorMetrics = data.error_metrics;
+            const systemMetrics = data.system_metrics;
+            
+            // Update requests chart
+            const requestLabels = apiMetrics.requests_per_minute.map(item => 
+                new Date(item.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})
+            );
+            const requestData = apiMetrics.requests_per_minute.map(item => item.requests);
+            
+            requestsChart.data.labels = requestLabels;
+            requestsChart.data.datasets[0].data = requestData;
+            requestsChart.update();
+            
+            // Update errors chart
+            const errorLabels = errorMetrics.errors_per_minute.map(item => 
+                new Date(item.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})
+            );
+            const errorData = errorMetrics.errors_per_minute.map(item => item.errors);
+            
+            errorsChart.data.labels = errorLabels;
+            errorsChart.data.datasets[0].data = errorData;
+            errorsChart.update();
+            
+            // Update system chart
+            systemChart.data.datasets[0].data = [
+                systemMetrics.cpu_percent || 0,
+                systemMetrics.memory_percent || 0,
+                systemMetrics.disk_percent || 0
+            ];
+            systemChart.update();
+        }
+        
+        // Update alerts
+        function updateAlerts(alerts) {
+            const alertsSection = document.getElementById('alerts-section');
+            
+            if (alerts.length === 0) {
+                alertsSection.innerHTML = '';
+                return;
+            }
+            
+            const alertsHTML = alerts.map(alert => `
+                <div class="alert ${alert.severity === 'error' ? 'error' : ''}">
+                    <span class="status-indicator status-${alert.severity === 'error' ? 'error' : 'warning'}"></span>
+                    <strong>${alert.type.toUpperCase()}:</strong> ${alert.message}
+                </div>
+            `).join('');
+            
+            alertsSection.innerHTML = alertsHTML;
+        }
+        
+        // Fetch and update data
+        async function fetchData() {
+            try {
+                const response = await fetch('/monitoring/metrics/');
+                const data = await response.json();
+                
+                updateMetrics(data);
+                updateCharts(data);
+                updateAlerts(data.alerts);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error fetching monitoring data:', error);
+                document.getElementById('loading').innerHTML = 'Ошибка загрузки данных мониторинга';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            fetchData();
+            
+            // Update every 30 seconds
+            setInterval(fetchData, 30000);
+        });
+    </script>
+</body>
+</html>

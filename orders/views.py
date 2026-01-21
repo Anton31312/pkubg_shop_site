@@ -6,8 +6,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Q, Count, Sum
 
-from .models import Cart, CartItem
+from .models import Cart, CartItem, Order, OrderItem
+from .permissions import IsAdminOrManager, IsAdminOrManagerOrOwner
+from .serializers import AdminOrderSerializer
 from products.models import Product
 
 
@@ -270,7 +273,8 @@ def create_order(request):
         
         # Get order data from request
         shipping_address = request.data.get('shipping_address', '')
-        delivery_method = request.data.get('delivery_method', 'pickup')
+        delivery_method = request.data.get('delivery_method', 'courier')
+        notes = request.data.get('notes', '')
         
         if not shipping_address:
             return Response(
@@ -285,6 +289,7 @@ def create_order(request):
             total_amount=cart.total_amount,
             shipping_address=shipping_address,
             delivery_method=delivery_method,
+            notes=notes,
             status='pending',
             payment_status='pending'
         )
@@ -304,7 +309,7 @@ def create_order(request):
         return Response({
             'order_id': order.id,
             'order_number': order.order_number,
-            'total_amount': order.total_amount,
+            'total_amount': float(order.total_amount),
             'status': order.status,
             'payment_status': order.payment_status
         })
@@ -333,4 +338,155 @@ def test_cart_update(request):
         'message': 'Test successful',
         'received_data': request.data,
         'user': str(request.user)
+    })
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrManager])
+def admin_get_all_orders(request):
+    """
+    Get all orders for admin/manager view.
+    Supports filtering by status, payment_status, and search by order_number or user email.
+    """
+    orders = Order.objects.select_related('user').prefetch_related(
+        'items', 'items__product', 'items__product__images'
+    ).order_by('-created_at')
+    
+    # Filter by status
+    status_filter = request.query_params.get('status')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # Filter by payment status
+    payment_status_filter = request.query_params.get('payment_status')
+    if payment_status_filter:
+        orders = orders.filter(payment_status=payment_status_filter)
+    
+    # Search by order number or user email
+    search = request.query_params.get('search')
+    if search:
+        orders = orders.filter(
+            Q(order_number__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search)
+        )
+    
+    # Pagination
+    page = int(request.query_params.get('page', 1))
+    page_size = int(request.query_params.get('page_size', 20))
+    start = (page - 1) * page_size
+    end = start + page_size
+    
+    total_count = orders.count()
+    orders_page = orders[start:end]
+    
+    serializer = AdminOrderSerializer(orders_page, many=True)
+    
+    return Response({
+        'orders': serializer.data,
+        'total': total_count,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': (total_count + page_size - 1) // page_size
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrManagerOrOwner])
+def admin_get_order_detail(request, order_id):
+    """
+    Get detailed information about a specific order.
+    Admins/managers can view any order, users can only view their own.
+    """
+    order = get_object_or_404(
+        Order.objects.select_related('user').prefetch_related(
+            'items', 'items__product', 'items__product__images'
+        ),
+        id=order_id
+    )
+    
+    # Check permissions
+    if request.user.role not in ['admin', 'manager'] and order.user != request.user:
+        return Response(
+            {'error': 'У вас нет прав для просмотра этого заказа'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = AdminOrderSerializer(order)
+    return Response(serializer.data)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminOrManager])
+def admin_update_order_status(request, order_id):
+    """
+    Update order status or payment status.
+    Only admins and managers can update orders.
+    """
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Update status if provided
+    new_status = request.data.get('status')
+    if new_status and new_status in dict(Order.ORDER_STATUS_CHOICES):
+        order.status = new_status
+    
+    # Update payment status if provided
+    new_payment_status = request.data.get('payment_status')
+    if new_payment_status and new_payment_status in dict(Order.PAYMENT_STATUS_CHOICES):
+        order.payment_status = new_payment_status
+    
+    # Update delivery tracking if provided
+    delivery_tracking = request.data.get('delivery_tracking')
+    if delivery_tracking is not None:
+        order.delivery_tracking = delivery_tracking
+    
+    order.save()
+    
+    serializer = AdminOrderSerializer(order)
+    return Response({
+        'message': 'Заказ успешно обновлен',
+        'order': serializer.data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrManager])
+def admin_get_order_statistics(request):
+    """
+    Get order statistics for admin/manager dashboard.
+    """
+    from decimal import Decimal
+    
+    # Total orders
+    total_orders = Order.objects.count()
+    
+    # Orders by status
+    orders_by_status = Order.objects.values('status').annotate(
+        count=Count('id')
+    ).order_by('status')
+    
+    # Orders by payment status
+    orders_by_payment_status = Order.objects.values('payment_status').annotate(
+        count=Count('id')
+    ).order_by('payment_status')
+    
+    # Total revenue (only paid orders)
+    total_revenue = Order.objects.filter(
+        payment_status='paid'
+    ).aggregate(
+        total=Sum('total_amount')
+    )['total'] or Decimal('0.00')
+    
+    # Recent orders (last 10)
+    recent_orders = Order.objects.select_related('user').order_by('-created_at')[:10]
+    recent_orders_data = AdminOrderSerializer(recent_orders, many=True).data
+    
+    return Response({
+        'total_orders': total_orders,
+        'orders_by_status': list(orders_by_status),
+        'orders_by_payment_status': list(orders_by_payment_status),
+        'total_revenue': float(total_revenue),
+        'recent_orders': recent_orders_data
     })

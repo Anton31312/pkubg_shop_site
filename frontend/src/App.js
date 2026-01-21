@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { fetchCart } from './store/cartSlice';
 import { initializeAuth } from './store/authSlice';
 import Header from './components/Header/Header';
@@ -11,6 +12,7 @@ import './App.css';
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { isAuthenticated, loading, initialized } = useSelector(state => state.auth);
 
   useEffect(() => {
@@ -25,6 +27,28 @@ function App() {
     }
   }, [dispatch, isAuthenticated, initialized]);
 
+  // Обновление при каждом изменении роута
+  useEffect(() => {
+    // Принудительное обновление состояния при смене страницы
+    console.log('Route changed to:', location.pathname);
+    
+    // Очищаем кэш и обновляем данные
+    if (isAuthenticated && initialized) {
+      // Обновляем корзину при каждом переходе
+      dispatch(fetchCart());
+    }
+    
+    // Прокручиваем страницу наверх при переходе
+    window.scrollTo(0, 0);
+    
+    // Принудительное обновление DOM
+    setTimeout(() => {
+      // Триггерим перерисовку компонентов
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+    
+  }, [location.pathname, dispatch, isAuthenticated, initialized]);
+
   // Show loading screen while initializing auth
   if (!initialized && loading) {
     return (
@@ -38,7 +62,7 @@ function App() {
   }
 
   return (
-    <ResponsiveLayout className="App">
+    <ResponsiveLayout className="App" key={location.pathname}>
       <Header />
       <NotificationContainer />
       <main className="main-content">

@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Django application metrics
+  - job_name: 'pkubg-django'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: '/monitoring/metrics/prometheus/'
+    scrape_interval: 30s
+
+  # System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Health checks
+  - job_name: 'pkubg-health'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: '/monitoring/health/detailed/'
+    scrape_interval: 60s

@@ -310,3 +310,104 @@
     gap: 5px;
   }
 }
+/* Address Autocomplete Styles */
+.address-autocomplete {
+  position: relative;
+}
+
+.address-input-wrapper {
+  position: relative;
+}
+
+.form-group textarea.invalid {
+  border-color: #dc3545;
+}
+
+.form-group textarea.invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #667eea;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: -6px;
+}
+
+.suggestion-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+.suggestion-value {
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.suggestion-postal {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.form-hint {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  display: block;
+}
+
+.form-hint.success {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.form-hint.error {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.form-hint.warning {
+  color: #ffc107;
+  font-weight: 500;
+}
+
+/* Scrollbar для списка подсказок */
+.address-suggestions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.address-suggestions::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 0 0 8px 0;
+}
+
+.address-suggestions::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.address-suggestions::-webkit-scrollbar-thumb:hover {
+  background: #5a6fd8;
+}

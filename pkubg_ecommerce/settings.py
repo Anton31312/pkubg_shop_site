@@ -6,11 +6,23 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
+# Patch for DRF format suffix converter issue with Django 5.x
+import django.urls.converters as converters
+if not hasattr(converters, '_drf_patched'):
+    original_register = converters.register_converter
+    def patched_register(converter, type_name):
+        if type_name == 'drf_format_suffix':
+            if type_name in converters.get_converters():
+                return
+        original_register(converter, type_name)
+    converters.register_converter = patched_register
+    converters._drf_patched = True
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -41,6 +53,7 @@ LOCAL_APPS = [
     'articles',
     'analytics',
     'integrations',
+    'monitoring',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -54,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'monitoring.metrics.MetricsMiddleware',
 ]
 
 ROOT_URLCONF = 'pkubg_ecommerce.urls'
@@ -156,14 +170,25 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://pkubg.ru",
+    "https://www.pkubg.ru",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# YooKassa Settings
+# YooKassa Settings (deprecated, use RoboKassa)
 YOOKASSA_SHOP_ID = config('YOOKASSA_SHOP_ID', default='test_shop_id')
 YOOKASSA_SECRET_KEY = config('YOOKASSA_SECRET_KEY', default='test_secret_key')
 YOOKASSA_BASE_URL = config('YOOKASSA_BASE_URL', default='https://api.yookassa.ru/v3')
+
+# RoboKassa Settings
+ROBOKASSA_MERCHANT_LOGIN = config('ROBOKASSA_MERCHANT_LOGIN', default='')
+ROBOKASSA_PASSWORD1 = config('ROBOKASSA_PASSWORD1', default='')
+ROBOKASSA_PASSWORD2 = config('ROBOKASSA_PASSWORD2', default='')
+ROBOKASSA_TEST_MODE = config('ROBOKASSA_TEST_MODE', default=True, cast=bool)
+
+# Dadata Settings
+DADATA_API_KEY = config('DADATA_API_KEY', default='')
 
 # Logging configuration
 LOGGING = {

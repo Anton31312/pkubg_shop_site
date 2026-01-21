@@ -58,7 +58,8 @@ class ProductAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add help text for nutritional_info field
-        self.fields['nutritional_info'].help_text = format_html(
+        from django.utils.safestring import mark_safe
+        self.fields['nutritional_info'].help_text = mark_safe(
             '<strong>Шаблон пищевой ценности уже заполнен.</strong><br>'
             'Измените значения согласно данным продукта.<br>'
             '<em>Все значения указываются на 100г продукта.</em><br>'

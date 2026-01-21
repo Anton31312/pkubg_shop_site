@@ -1,5 +1,5 @@
 """
-Views for integrations app.
+Views for integrations app - Robokassa payment integration.
 """
 import json
 import logging
@@ -13,9 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from orders.models import Order
-from .yookassa_service import YooKassaService, PaymentError
-from .cdek_service import CDEKService, CDEKError
-from .models import DeliveryRequest
+from .robokassa_service import RobokassaService, PaymentError
+from .models import PaymentTransaction
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +22,11 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_payment(request):
-    """Create payment for order."""
+    """Create payment for order using Robokassa."""
     try:
         order_id = request.data.get('order_id')
-        return_url = request.data.get('return_url')
+        success_url = request.data.get('success_url')
+        fail_url = request.data.get('fail_url')
         
         if not order_id:
             return Response(
@@ -43,15 +43,24 @@ def create_payment(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Create payment
-        yookassa_service = YooKassaService()
-        payment_data = yookassa_service.create_payment(order, return_url)
+        # Create payment URL
+        robokassa_service = RobokassaService()
+        
+        # Формируем URL'ы для callback'ов
+        result_url = request.build_absolute_uri('/api/integrations/webhooks/robokassa/')
+        
+        payment_data = robokassa_service.create_payment_url(
+            order=order,
+            result_url=result_url,
+            success_url=success_url,
+            fail_url=fail_url
+        )
         
         return Response({
-            'payment_id': payment_data['id'],
-            'confirmation_url': payment_data['confirmation']['confirmation_url'],
-            'amount': payment_data['amount']['value'],
-            'currency': payment_data['amount']['currency']
+            'payment_id': payment_data['payment_id'],
+            'payment_url': payment_data['payment_url'],
+            'amount': payment_data['amount'],
+            'currency': payment_data['currency']
         })
         
     except PaymentError as e:
@@ -68,38 +77,13 @@ def create_payment(request):
         )
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def yookassa_webhook(request):
-    """Handle YooKassa webhook notifications."""
-    try:
-        # Parse webhook data
-        webhook_data = json.loads(request.body.decode('utf-8'))
-        
-        # Process webhook
-        yookassa_service = YooKassaService()
-        success = yookassa_service.process_webhook(webhook_data)
-        
-        if success:
-            return HttpResponse(status=200)
-        else:
-            return HttpResponse(status=400)
-            
-    except json.JSONDecodeError:
-        logger.error("Invalid JSON in webhook request")
-        return HttpResponse(status=400)
-    except Exception as e:
-        logger.error(f"Webhook processing error: {str(e)}")
-        return HttpResponse(status=500)
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_status(request, payment_id):
     """Get payment status."""
     try:
-        yookassa_service = YooKassaService()
-        payment_data = yookassa_service.get_payment_status(payment_id)
+        robokassa_service = RobokassaService()
+        payment_data = robokassa_service.get_payment_status(payment_id)
         
         if not payment_data:
             return Response(
@@ -120,198 +104,54 @@ def payment_status(request, payment_id):
         )
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def calculate_delivery_cost(request):
-    """Calculate delivery cost using CDEK."""
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def robokassa_webhook(request):
+    """Handle Robokassa ResultURL notifications."""
     try:
-        to_address = request.data.get('address')
-        weight = request.data.get('weight', 1.0)
-        dimensions = request.data.get('dimensions', {})
+        # Robokassa может отправлять данные через POST или GET
+        if request.method == 'POST':
+            notification_data = request.POST.dict()
+        else:
+            notification_data = request.GET.dict()
         
-        if not to_address:
-            return Response(
-                {'error': 'Address is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        logger.info(f"Robokassa webhook received: {notification_data}")
         
-        cdek_service = CDEKService()
-        cost_data = cdek_service.calculate_delivery_cost(
-            from_location='Москва',  # Store location
-            to_location=to_address,
-            weight=weight,
-            dimensions=dimensions
-        )
+        # Обработка уведомления
+        robokassa_service = RobokassaService()
+        success = robokassa_service.process_result_notification(notification_data)
         
-        return Response(cost_data)
-        
-    except CDEKError as e:
-        logger.error(f"CDEK delivery cost calculation error: {str(e)}")
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        if success:
+            # Robokassa ожидает ответ вида "OK{InvId}"
+            inv_id = notification_data.get('InvId', '')
+            return HttpResponse(f"OK{inv_id}", content_type='text/plain')
+        else:
+            return HttpResponse("ERROR", status=400, content_type='text/plain')
+            
     except Exception as e:
-        logger.error(f"Unexpected error in calculate_delivery_cost: {str(e)}")
-        return Response(
-            {'error': 'Произошла ошибка при расчете стоимости доставки'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def find_pickup_points(request):
-    """Find CDEK pickup points by address."""
-    try:
-        address = request.GET.get('address')
-        limit = int(request.GET.get('limit', 10))
-        
-        if not address:
-            return Response(
-                {'error': 'Address parameter is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        cdek_service = CDEKService()
-        pickup_points = cdek_service.find_pickup_points(address, limit)
-        
-        return Response({'pickup_points': pickup_points})
-        
-    except CDEKError as e:
-        logger.error(f"CDEK pickup points search error: {str(e)}")
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error in find_pickup_points: {str(e)}")
-        return Response(
-            {'error': 'Произошла ошибка при поиске пунктов выдачи'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_delivery_order(request):
-    """Create delivery order in CDEK."""
-    try:
-        order_id = request.data.get('order_id')
-        pickup_point_code = request.data.get('pickup_point_code')
-        
-        if not order_id or not pickup_point_code:
-            return Response(
-                {'error': 'Order ID and pickup point code are required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Get order and verify ownership
-        order = get_object_or_404(Order, id=order_id, user=request.user)
-        
-        if order.status != 'paid':
-            return Response(
-                {'error': 'Order must be paid before creating delivery'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Check if delivery already exists
-        if DeliveryRequest.objects.filter(order=order).exists():
-            return Response(
-                {'error': 'Delivery order already exists for this order'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        cdek_service = CDEKService()
-        delivery_data = cdek_service.create_delivery_order(order, pickup_point_code)
-        
-        # Update order status
-        order.status = 'processing'
-        order.delivery_tracking = delivery_data['cdek_order_id']
-        order.save()
-        
-        return Response(delivery_data)
-        
-    except CDEKError as e:
-        logger.error(f"CDEK delivery order creation error: {str(e)}")
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error in create_delivery_order: {str(e)}")
-        return Response(
-            {'error': 'Произошла ошибка при создании заказа доставки'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def delivery_status(request, delivery_id):
-    """Get delivery status."""
-    try:
-        # Get delivery request and verify ownership
-        delivery_request = get_object_or_404(
-            DeliveryRequest, 
-            id=delivery_id, 
-            order__user=request.user
-        )
-        
-        cdek_service = CDEKService()
-        status_data = cdek_service.get_delivery_status(delivery_request.cdek_order_id)
-        
-        # Update local status if changed
-        if status_data['status'] != delivery_request.status:
-            delivery_request.status = status_data['status']
-            if status_data.get('tracking_number'):
-                delivery_request.tracking_number = status_data['tracking_number']
-            delivery_request.save()
-        
-        return Response({
-            'delivery_id': delivery_request.id,
-            'order_number': delivery_request.order.order_number,
-            'status': status_data['status'],
-            'cdek_status': status_data['cdek_status'],
-            'tracking_number': status_data.get('tracking_number'),
-            'pickup_point': delivery_request.pickup_point,
-            'updated_at': status_data.get('updated_at')
-        })
-        
-    except CDEKError as e:
-        logger.error(f"CDEK delivery status error: {str(e)}")
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error in delivery_status: {str(e)}")
-        return Response(
-            {'error': 'Произошла ошибка при получении статуса доставки'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        logger.error(f"Robokassa webhook processing error: {str(e)}")
+        return HttpResponse("ERROR", status=500, content_type='text/plain')
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def cdek_webhook(request):
-    """Handle CDEK webhook notifications."""
+def robokassa_result_url2(request):
+    """Handle Robokassa ResultUrl2 notifications (JWS format)."""
     try:
-        # Parse webhook data
-        webhook_data = json.loads(request.body.decode('utf-8'))
+        # ResultUrl2 отправляет JWS токен в теле запроса
+        jws_token = request.body.decode('utf-8')
         
-        # Process webhook
-        cdek_service = CDEKService()
-        success = cdek_service.process_webhook(webhook_data)
+        logger.info(f"Robokassa ResultUrl2 received")
+        
+        # Обработка JWS уведомления
+        robokassa_service = RobokassaService()
+        success = robokassa_service.process_result_url2_notification(jws_token)
         
         if success:
             return HttpResponse(status=200)
         else:
             return HttpResponse(status=400)
             
-    except json.JSONDecodeError:
-        logger.error("Invalid JSON in CDEK webhook request")
-        return HttpResponse(status=400)
     except Exception as e:
-        logger.error(f"CDEK webhook processing error: {str(e)}")
+        logger.error(f"Robokassa ResultUrl2 processing error: {str(e)}")
         return HttpResponse(status=500)

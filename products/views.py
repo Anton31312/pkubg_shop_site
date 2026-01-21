@@ -104,9 +104,21 @@ class ProductViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Filter products based on user permissions."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Log query parameters
+        logger.info(f"Query params: {self.request.query_params}")
+        
         if self.request.user.is_authenticated and self.request.user.role in ['admin', 'manager']:
-            return self.queryset.all()
-        return self.queryset.filter(is_active=True)
+            queryset = self.queryset.all()
+        else:
+            queryset = self.queryset.filter(is_active=True)
+        
+        # Log the count before and after filtering
+        logger.info(f"Products before filtering: {queryset.count()}")
+        
+        return queryset
     
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""

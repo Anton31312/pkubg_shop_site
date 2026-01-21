@@ -165,6 +165,109 @@
   line-height: 1.6;
 }
 
+/* Filter Banner */
+.filter-banner {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.filter-banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.filter-banner-content h2 {
+  font-size: 2.5rem;
+  color: #2c5530;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.filter-banner-content > p {
+  font-size: 1.2rem;
+  color: #495057;
+  margin-bottom: 40px;
+}
+
+.filter-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 30px;
+  background: white;
+  border-radius: 15px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+}
+
+.filter-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  color: inherit;
+}
+
+.filter-btn.gluten-free:hover {
+  border-color: #f39c12;
+}
+
+.filter-btn.low-protein:hover {
+  border-color: #3498db;
+}
+
+.filter-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.filter-icon-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.filter-icon-text {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #3498db;
+  flex-shrink: 0;
+  font-family: 'Arial Black', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.filter-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.filter-text strong {
+  font-size: 1.3rem;
+  color: #2c5530;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.filter-text small {
+  font-size: 0.95rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
 /* Categories Section */
 .categories-section {
   padding: 80px 20px;
@@ -567,6 +670,41 @@
     margin-bottom: var(--space-lg);
   }
 
+  .filter-banner {
+    padding: var(--space-lg) var(--space-sm);
+  }
+
+  .filter-buttons {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .filter-btn {
+    padding: var(--space-md);
+    gap: var(--space-md);
+  }
+
+  .filter-icon {
+    font-size: 2.5rem;
+  }
+
+  .filter-icon-img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .filter-icon-text {
+    font-size: 1.7rem;
+  }
+
+  .filter-text strong {
+    font-size: 1.1rem;
+  }
+
+  .filter-text small {
+    font-size: 0.85rem;
+  }
+
   .categories-section {
     padding: var(--space-lg) var(--space-sm);
   }
@@ -640,6 +778,56 @@
 
   .stat-label {
     font-size: var(--text-xs);
+  }
+
+  .filter-banner {
+    padding: var(--space-md) var(--space-xs);
+  }
+
+  .filter-banner-content h2 {
+    font-size: 1.8rem;
+  }
+
+  .filter-banner-content > p {
+    font-size: 1rem;
+    margin-bottom: var(--space-md);
+  }
+
+  .filter-buttons {
+    gap: var(--space-sm);
+  }
+
+  .filter-btn {
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .filter-icon {
+    font-size: 2rem;
+  }
+
+  .filter-icon-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .filter-icon-text {
+    font-size: 1.5rem;
+  }
+
+  .filter-text {
+    align-items: center;
+    text-align: center;
+  }
+
+  .filter-text strong {
+    font-size: 1rem;
+  }
+
+  .filter-text small {
+    font-size: 0.8rem;
   }
 
   .categories-section {

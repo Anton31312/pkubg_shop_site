@@ -110,9 +110,7 @@ const LoginForm = () => {
               Зарегистрироваться
             </Link>
           </p>
-          <Link to="/forgot-password" className="forgot-password">
-            Забыли пароль?
-          </Link>
+          
         </div>
       </div>
     </div>
@@ -120,3 +118,8 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
+/* Восстановление пароля не реализовано 
+          <Link to="/forgot-password" className="forgot-password">
+            Забыли пароль?
+          </Link> */

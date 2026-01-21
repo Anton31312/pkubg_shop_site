@@ -6,6 +6,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from .address_suggestions import get_address_suggestions
 
 def api_root(request):
     """API root endpoint with available endpoints."""
@@ -20,6 +21,7 @@ def api_root(request):
             'articles': '/api/articles/',
             'analytics': '/api/analytics/',
             'integrations': '/api/integrations/',
+            'monitoring': '/monitoring/',
         },
         'documentation': 'https://github.com/your-repo/docs'
     })
@@ -33,6 +35,8 @@ urlpatterns = [
     path('api/articles/', include('articles.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('api/integrations/', include('integrations.urls')),
+    path('api/address-suggestions/', get_address_suggestions, name='address_suggestions'),
+    path('monitoring/', include('monitoring.urls')),
 ]
 
 if settings.DEBUG:

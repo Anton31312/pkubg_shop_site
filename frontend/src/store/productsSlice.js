@@ -11,13 +11,22 @@ export const fetchProducts = createAsyncThunk(
       if (category) params.append('category', category);
       
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        // Add all non-null, non-undefined values
+        if (value !== undefined && value !== null) {
+          // Convert boolean to string for URL params
+          params.append(key, String(value));
+        }
       });
 
-      const response = await api.get(`/products/products/?${params.toString()}`);
+      const url = `/products/products/?${params.toString()}`;
+      console.log('Fetching products with URL:', url);
+      
+      const response = await api.get(url);
+      console.log('Products received:', response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      console.error('Error fetching products:', error);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
@@ -67,8 +76,8 @@ const productsSlice = createSlice({
     currentProduct: null,
     filters: {
       search: '',
-      category: '',
-      manufacturer: '',
+      categories: [], // Changed from category (string) to categories (array)
+      manufacturers: [],
       isGlutenFree: false,
       isLowProtein: false,
       minPrice: '',
@@ -89,8 +98,8 @@ const productsSlice = createSlice({
     clearFilters: (state) => {
       state.filters = {
         search: '',
-        category: '',
-        manufacturer: '',
+        categories: [],
+        manufacturers: [],
         isGlutenFree: false,
         isLowProtein: false,
         minPrice: '',

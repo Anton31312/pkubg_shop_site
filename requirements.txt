@@ -1,14 +1,18 @@
 # Django Backend Dependencies
-Django==4.2.7
-djangorestframework==3.14.0
+Django>=5.0
+djangorestframework>=3.15.0
 django-cors-headers==4.3.1
-django-filter==23.4
-psycopg2-binary==2.9.9
+django-filter>=24.0
+psycopg[binary]>=3.2.0
 python-decouple==3.8
 Pillow==10.1.0
-djangorestframework-simplejwt==5.3.0
+djangorestframework-simplejwt>=5.3.1
 requests==2.31.0
 transliterate==1.10.2
+
+# Monitoring Dependencies
+psutil>=5.9.0
+gunicorn>=21.2.0
 
 # Testing Dependencies
 pytest==7.4.3

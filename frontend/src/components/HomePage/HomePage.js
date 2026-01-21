@@ -114,6 +114,36 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Filter Banner */}
+      <section className="filter-banner">
+        <div className="filter-banner-content">
+          <h2>Специальное питание</h2>
+          <p>Выберите продукцию, соответствующую вашим потребностям</p>
+          <div className="filter-buttons">
+            <Link 
+              to="/products?dietary_type=gluten_free" 
+              className="filter-btn gluten-free"
+            >
+              <img src="/glutenfree.png" alt="Без глютена" className="filter-icon-img" />
+              <span className="filter-text">
+                <strong>Безглютеновая продукция</strong>
+                <small>Для людей с непереносимостью глютена</small>
+              </span>
+            </Link>
+            <Link 
+              to="/products?dietary_type=low_protein" 
+              className="filter-btn low-protein"
+            >
+              <span className="filter-icon-text">PKU</span>
+              <span className="filter-text">
+                <strong>Низкобелковая продукция</strong>
+                <small>Для специальной диеты</small>
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Categories Slider */}
       <section className="categories-section">
         <div className="section-header">
@@ -145,7 +175,7 @@ const HomePage = () => {
                       .map((category) => (
                         <Link 
                           key={category.id}
-                          to={`/products?category=${category.id}`}
+                          to={`/products?categories=${category.id}`}
                           className="category-card"
                         >
                           <div className="category-icon">

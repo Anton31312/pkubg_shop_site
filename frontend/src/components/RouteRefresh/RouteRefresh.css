@@ -1,0 +1,23 @@
+.route-container {
+  width: 100%;
+  min-height: 100%;
+  animation: routeFadeIn 0.2s ease-out;
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Отключаем анимацию для пользователей с ограниченной подвижностью */
+@media (prefers-reduced-motion: reduce) {
+  .route-container {
+    animation: none;
+  }
+}

@@ -100,7 +100,7 @@ const ShoppingCart = () => {
           <div className="empty-cart-icon">🛒</div>
           <h3>Корзина пуста</h3>
           <p>Добавьте товары из каталога, чтобы оформить заказ</p>
-          <Link to="/" className="continue-shopping-btn">
+          <Link to="/catalog/" className="continue-shopping-btn">
             Перейти к покупкам
           </Link>
         </div>

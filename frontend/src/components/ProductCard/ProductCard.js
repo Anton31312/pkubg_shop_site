@@ -57,6 +57,11 @@ const ProductCard = ({ product, onUpdate }) => {
   const primaryImage = product.images?.find(img => img.is_primary && img.image) || 
                       product.images?.find(img => img.image) || 
                       null;
+  
+  // Calculate discount if applicable
+  const oldPrice = product.old_price || product.price * 1.2;
+  const showDiscount = product.old_price && product.old_price > product.price;
+  const discountPercent = showDiscount ? Math.round(((oldPrice - product.price) / oldPrice) * 100) : 0;
 
   return (
     <div className="product-card">
@@ -103,6 +108,23 @@ const ProductCard = ({ product, onUpdate }) => {
         </div>
 
         <div className="product-info">
+          <div className="price-header">
+            <div className="price-block">
+              <span className="current-price">{formatPrice(product.price)}</span>
+              {showDiscount && (
+                <div className="price-details">
+                  <span className="old-price">{formatPrice(oldPrice)}</span>
+                  <span className="discount-badge">-{discountPercent}%</span>
+                </div>
+              )}
+              {!isOutOfStock && product.stock_quantity < 10 && (
+                <div className="stock-status low-stock">
+                  Осталось {product.stock_quantity} шт.
+                </div>
+              )}
+            </div>
+          </div>
+          
           <h3 className="product-name">{product.name}</h3>
           
           {product.manufacturer && (
@@ -110,49 +132,16 @@ const ProductCard = ({ product, onUpdate }) => {
               {product.manufacturer}
             </p>
           )}
-          
-          <p className="product-description">
-            {product.description?.length > 100 
-              ? `${product.description.substring(0, 100)}...`
-              : product.description
-            }
-          </p>
 
-          {product.nutritional_info && Object.keys(product.nutritional_info).length > 0 && (
-            <div className="nutritional-preview">
-              {product.nutritional_info.calories && (
-                <span className="nutrition-item">
-                  {product.nutritional_info.calories} ккал
-                </span>
-              )}
-              {product.nutritional_info.protein && (
-                <span className="nutrition-item">
-                  Белки: {product.nutritional_info.protein}г
-                </span>
-              )}
-            </div>
+          {!isOutOfStock && (
+            <button 
+              onClick={handleAddToCart}
+              disabled={loading}
+              className="add-to-cart-btn"
+            >
+              🛒 {loading ? 'Добавление...' : 'В корзину'}
+            </button>
           )}
-
-          <div className="product-footer">
-            <div className="price-section">
-              <span className="price">{formatPrice(product.price)}</span>
-              {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-                <span className="stock-warning">
-                  Осталось: {product.stock_quantity}
-                </span>
-              )}
-            </div>
-
-            {!isOutOfStock && (
-              <button 
-                onClick={handleAddToCart}
-                disabled={loading}
-                className="add-to-cart-btn"
-              >
-                {loading ? '...' : 'В корзину'}
-              </button>
-            )}
-          </div>
         </div>
       </Link>
     </div>

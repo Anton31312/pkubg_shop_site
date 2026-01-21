@@ -10,17 +10,48 @@ const ProductFilters = ({ categories = [], manufacturers = [], filters, onFilter
     onFilterChange({ [field]: checked });
   };
 
+  const handleCategoryToggle = (categoryId) => {
+    const currentCategories = filters.categories || [];
+    const newCategories = currentCategories.includes(categoryId)
+      ? currentCategories.filter(c => c !== categoryId)
+      : [...currentCategories, categoryId];
+    
+    onFilterChange({ categories: newCategories });
+  };
+
+  const handleManufacturerToggle = (manufacturer) => {
+    const currentManufacturers = filters.manufacturers || [];
+    const newManufacturers = currentManufacturers.includes(manufacturer)
+      ? currentManufacturers.filter(m => m !== manufacturer)
+      : [...currentManufacturers, manufacturer];
+    
+    onFilterChange({ manufacturers: newManufacturers });
+  };
+
   const clearFilters = () => {
     onFilterChange({
       search: '',
-      category: '',
-      manufacturer: '',
+      categories: [],
+      manufacturers: [],
       isGlutenFree: false,
       isLowProtein: false,
       minPrice: '',
       maxPrice: '',
     });
   };
+
+  // Organize categories into parent-child hierarchy
+  const organizeCategories = (categories) => {
+    const parentCategories = categories.filter(cat => !cat.parent);
+    const childCategories = categories.filter(cat => cat.parent);
+    
+    return parentCategories.map(parent => ({
+      ...parent,
+      children: childCategories.filter(child => child.parent === parent.id)
+    }));
+  };
+
+  const hierarchicalCategories = organizeCategories(categories);
 
   if (!isVisible) return null;
 
@@ -35,34 +66,59 @@ const ProductFilters = ({ categories = [], manufacturers = [], filters, onFilter
 
       <div className="filter-group">
         <label>Категория</label>
-        <select
-          value={filters.category}
-          onChange={(e) => handleInputChange('category', e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Все категории</option>
-          {Array.isArray(categories) && categories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
+        <div className="checkbox-group">
+          {hierarchicalCategories.map(parent => (
+            <React.Fragment key={parent.id}>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={filters.categories?.includes(parent.id) || false}
+                  onChange={() => handleCategoryToggle(parent.id)}
+                />
+                <span className="checkmark"></span>
+                {parent.name}
+              </label>
+              {parent.children && parent.children.length > 0 && (
+                <div className="subcategories">
+                  {parent.children.map(child => (
+                    <label key={child.id} className="checkbox-label subcategory">
+                      <input
+                        type="checkbox"
+                        checked={filters.categories?.includes(child.id) || false}
+                        onChange={() => handleCategoryToggle(child.id)}
+                      />
+                      <span className="checkmark"></span>
+                      {child.name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </React.Fragment>
           ))}
-        </select>
+          {(!categories || categories.length === 0) && (
+            <p className="no-categories">Категории не найдены</p>
+          )}
+        </div>
       </div>
 
       <div className="filter-group">
         <label>Производитель</label>
-        <select
-          value={filters.manufacturer}
-          onChange={(e) => handleInputChange('manufacturer', e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Все производители</option>
+        <div className="checkbox-group">
           {Array.isArray(manufacturers) && manufacturers.map((manufacturer, index) => (
-            <option key={index} value={manufacturer}>
+            <label key={index} className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={filters.manufacturers?.includes(manufacturer) || false}
+                onChange={() => handleManufacturerToggle(manufacturer)}
+              />
+              <span className="checkmark"></span>
               {manufacturer}
-            </option>
+            </label>
           ))}
-        </select>
+          {(!manufacturers || manufacturers.length === 0) && (
+            <p className="no-manufacturers">Производители не найдены</p>
+          )}
+        </div>
       </div>
 
       <div className="filter-group">

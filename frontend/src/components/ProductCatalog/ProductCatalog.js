@@ -1,20 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { fetchProducts, fetchCategories, fetchManufacturers, setFilters, clearCurrentProduct } from '../../store/productsSlice';
 import ProductCard from '../ProductCard/ProductCard';
 import ProductFilters from './ProductFilters';
 import AdminToolbar from '../AdminToolbar/AdminToolbar';
-import ResponsiveGrid from '../ResponsiveGrid';
 import useResponsive from '../../hooks/useResponsive';
+import useRouteRefresh from '../../hooks/useRouteRefresh';
 import './ProductCatalog.css';
 
 const ProductCatalog = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { items, categories, manufacturers, filters, loading, error } = useSelector(state => state.products);
-  const { isMobile, isTablet } = useResponsive();
+  const { isMobile } = useResponsive();
   const [showFilters, setShowFilters] = useState(!isMobile);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Используем хук для автоматического обновления при смене роута
+  const refreshCallback = useCallback(() => {
+    console.log('ProductCatalog: Refreshing due to route change');
+    dispatch(clearCurrentProduct());
+    dispatch(fetchCategories());
+    dispatch(fetchManufacturers());
+  }, [dispatch]);
+
+  const refreshKey = useRouteRefresh(refreshCallback);
 
   useEffect(() => {
     // Clear any previous product details
@@ -25,50 +36,78 @@ const ProductCatalog = () => {
     dispatch(fetchManufacturers());
     
     // Set filters from URL params
+    const dietaryType = searchParams.get('dietary_type');
+    const manufacturersParam = searchParams.get('manufacturers');
+    const categoriesParam = searchParams.get('categories');
     const urlFilters = {
       search: searchParams.get('search') || '',
-      category: searchParams.get('category') || '',
-      manufacturer: searchParams.get('manufacturer') || '',
-      isGlutenFree: searchParams.get('gluten_free') === 'true',
-      isLowProtein: searchParams.get('low_protein') === 'true',
+      categories: categoriesParam ? categoriesParam.split(',').map(Number) : [],
+      manufacturers: manufacturersParam ? manufacturersParam.split(',') : [],
+      isGlutenFree: searchParams.get('gluten_free') === 'true' || dietaryType === 'gluten_free',
+      isLowProtein: searchParams.get('low_protein') === 'true' || dietaryType === 'low_protein',
       minPrice: searchParams.get('min_price') || '',
       maxPrice: searchParams.get('max_price') || '',
     };
     
+    console.log('Setting filters from URL:', urlFilters);
     dispatch(setFilters(urlFilters));
-  }, [dispatch, searchParams]);
+    setIsInitialized(true);
+  }, [dispatch, searchParams, refreshKey]); // Добавляем refreshKey как зависимость
 
   useEffect(() => {
+    // Only fetch products after initialization
+    if (!isInitialized) return;
+    
     // Fetch products when filters change
-    const searchFilters = {
-      search: filters.search || '',
-      category: filters.category || '',
-      manufacturer: filters.manufacturer || '',
-      is_gluten_free: filters.isGlutenFree || false,
-      is_low_protein: filters.isLowProtein || false,
-      min_price: filters.minPrice || '',
-      max_price: filters.maxPrice || '',
-    };
+    console.log('Current filters:', filters);
+    
+    const searchFilters = {};
+    
+    if (filters.search) searchFilters.search = filters.search;
+    if (filters.categories && filters.categories.length > 0) {
+      searchFilters.category = filters.categories.join(',');
+    }
+    if (filters.manufacturers && filters.manufacturers.length > 0) {
+      searchFilters.manufacturer = filters.manufacturers.join(',');
+    }
+    if (filters.isGlutenFree === true) searchFilters.is_gluten_free = true;
+    if (filters.isLowProtein === true) searchFilters.is_low_protein = true;
+    if (filters.minPrice) searchFilters.min_price = filters.minPrice;
+    if (filters.maxPrice) searchFilters.max_price = filters.maxPrice;
+
+    console.log('Search filters being sent:', searchFilters);
 
     dispatch(fetchProducts({ 
       search: filters.search || '', 
-      category: filters.category || '', 
+      category: '', 
       filters: searchFilters 
     }));
-  }, [dispatch, filters]);
+  }, [dispatch, filters, isInitialized]);
 
   const handleFilterChange = (newFilters) => {
     dispatch(setFilters(newFilters));
     
     // Update URL params
     const params = new URLSearchParams();
-    Object.entries({ ...filters, ...newFilters }).forEach(([key, value]) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    
+    Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value && value !== '' && value !== false) {
-        const paramKey = key === 'isGlutenFree' ? 'gluten_free' : 
-                        key === 'isLowProtein' ? 'low_protein' :
-                        key === 'minPrice' ? 'min_price' :
-                        key === 'maxPrice' ? 'max_price' : key;
-        params.set(paramKey, value);
+        if (key === 'categories' && Array.isArray(value) && value.length > 0) {
+          params.set('categories', value.join(','));
+        } else if (key === 'manufacturers' && Array.isArray(value) && value.length > 0) {
+          params.set('manufacturers', value.join(','));
+        } else if (key === 'isGlutenFree') {
+          params.set('gluten_free', value);
+        } else if (key === 'isLowProtein') {
+          params.set('low_protein', value);
+        } else if (key === 'minPrice') {
+          params.set('min_price', value);
+        } else if (key === 'maxPrice') {
+          params.set('max_price', value);
+        } else if (key !== 'categories' && key !== 'manufacturers') {
+          params.set(key, value);
+        }
       }
     });
     setSearchParams(params);
@@ -88,7 +127,7 @@ const ProductCatalog = () => {
   }
 
   return (
-    <div className="product-catalog">
+    <div className="product-catalog" key={refreshKey}>
       {/* Admin Toolbar - показывается только для администраторов */}
       <AdminToolbar />
       
@@ -134,12 +173,7 @@ const ProductCatalog = () => {
                 <span>Найдено товаров: {items.length}</span>
               </div>
               
-              <ResponsiveGrid
-                columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 4 }}
-                gap="lg"
-                minItemWidth="280px"
-                className="products-grid"
-              >
+              <div className="products-grid">
                 {items.length > 0 ? (
                   items.map(product => (
                     <ProductCard 
@@ -147,18 +181,26 @@ const ProductCatalog = () => {
                       product={product} 
                       onUpdate={() => {
                         // Refresh products when admin makes changes
+                        const refreshFilters = {
+                          search: filters.search,
+                          is_gluten_free: filters.isGlutenFree,
+                          is_low_protein: filters.isLowProtein,
+                          min_price: filters.minPrice,
+                          max_price: filters.maxPrice,
+                        };
+                        
+                        if (filters.categories && filters.categories.length > 0) {
+                          refreshFilters.category = filters.categories.join(',');
+                        }
+                        
+                        if (filters.manufacturers && filters.manufacturers.length > 0) {
+                          refreshFilters.manufacturer = filters.manufacturers.join(',');
+                        }
+                        
                         dispatch(fetchProducts({ 
                           search: filters.search, 
-                          category: filters.category, 
-                          filters: {
-                            search: filters.search,
-                            category: filters.category,
-                            manufacturer: filters.manufacturer,
-                            is_gluten_free: filters.isGlutenFree,
-                            is_low_protein: filters.isLowProtein,
-                            min_price: filters.minPrice,
-                            max_price: filters.maxPrice,
-                          }
+                          category: '', 
+                          filters: refreshFilters
                         }));
                       }}
                     />
@@ -169,7 +211,7 @@ const ProductCatalog = () => {
                     <p>Попробуйте изменить параметры поиска или фильтры</p>
                   </div>
                 )}
-              </ResponsiveGrid>
+              </div>
             </>
           )}
         </div>

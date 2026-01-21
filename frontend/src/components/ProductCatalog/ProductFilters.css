@@ -150,6 +150,27 @@
   display: block;
 }
 
+.subcategories {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid #e9ecef;
+}
+
+.checkbox-label.subcategory {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.no-categories,
+.no-manufacturers {
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .product-filters {

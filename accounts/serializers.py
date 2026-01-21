@@ -19,11 +19,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user data."""
     
-    userprofile = UserProfileSerializer(read_only=True)
+    address = serializers.CharField(source='userprofile.address', read_only=True)
+    birth_date = serializers.DateField(source='userprofile.birth_date', read_only=True)
+    dietary_preferences = serializers.JSONField(source='userprofile.dietary_preferences', read_only=True)
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone', 'role', 'userprofile', 'date_joined']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone', 'role', 'address', 'birth_date', 'dietary_preferences', 'date_joined']
         read_only_fields = ['id', 'username', 'date_joined']
 
 

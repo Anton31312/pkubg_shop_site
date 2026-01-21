@@ -204,7 +204,7 @@ const ProductDetail = () => {
     <div className="product-detail">
       {/* Back to Catalog Link */}
       <div className="back-to-catalog">
-        <Link to="/" className="back-link">
+        <Link to="/catalog" className="back-link">
           ← Вернуться в каталог товаров
         </Link>
       </div>
@@ -213,9 +213,7 @@ const ProductDetail = () => {
       <nav className="breadcrumbs">
         <Link to="/">Главная</Link>
         <span>/</span>
-        <Link to={`/?category=${currentProduct.category.id}`}>
-          {currentProduct.category.name}
-        </Link>
+        <Link to="/catalog">Каталог</Link>
         <span>/</span>
         <span>{currentProduct.name}</span>
       </nav>

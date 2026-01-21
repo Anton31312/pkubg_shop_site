@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import api from '../../utils/api';
+import useRouteRefresh from '../../hooks/useRouteRefresh';
 import './UserProfile.css';
 
 const UserProfile = () => {
-  const { user, isAuthenticated } = useSelector(state => state.auth);
+  const { isAuthenticated } = useSelector(state => state.auth);
   const [profile, setProfile] = useState({
     first_name: '',
     last_name: '',
@@ -20,17 +21,65 @@ const UserProfile = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
+  // Для автоподбора адресов
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const addressInputRef = useRef(null);
+  const suggestionsRef = useRef(null);
+  const debounceTimerRef = useRef(null);
+
+  // Используем хук для автоматического обновления при смене роута
+  const refreshCallback = useCallback(() => {
+    console.log('UserProfile: Refreshing due to route change');
     if (isAuthenticated) {
       fetchProfile();
       fetchOrders();
     }
   }, [isAuthenticated]);
 
+  const refreshKey = useRouteRefresh(refreshCallback);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchProfile();
+      fetchOrders();
+    }
+  }, [isAuthenticated, refreshKey]); // Добавляем refreshKey как зависимость
+
+  // Закрытие списка подсказок при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(event.target) &&
+        addressInputRef.current &&
+        !addressInputRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchProfile = async () => {
     try {
       const response = await api.get('/auth/profile/');
-      setProfile(response.data);
+      const profileData = response.data;
+      
+      // Форматируем дату рождения для input[type="date"]
+      if (profileData.birth_date) {
+        profileData.birth_date = profileData.birth_date.split('T')[0];
+      }
+      
+      setProfile(profileData);
+      
+      // Если адрес есть, считаем его валидным
+      if (profileData.address) {
+        setSelectedAddress({ value: profileData.address });
+      }
     } catch (error) {
       setError('Ошибка загрузки профиля');
     } finally {
@@ -41,10 +90,124 @@ const UserProfile = () => {
   const fetchOrders = async () => {
     try {
       const response = await api.get('/orders/');
-      setOrders(response.data.results || response.data);
+      setOrders(response.data.orders || []);
     } catch (error) {
       console.error('Ошибка загрузки заказов:', error);
+      setOrders([]);
     }
+  };
+
+  // Функция для получения подсказок адресов от Dadata через наш бэкенд
+  const fetchAddressSuggestions = async (query) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const response = await api.post('/address-suggestions/', {
+        query: query
+      });
+
+      const suggestions = response.data.suggestions || [];
+      setAddressSuggestions(suggestions);
+      
+      if (suggestions.length > 0) {
+        setShowSuggestions(true);
+      } else {
+        setShowSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Ошибка получения подсказок адресов:', error);
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const validateAddressStructure = (address) => {
+    if (!address || !address.trim()) {
+      return false;
+    }
+
+    const parts = address.split(',').map(part => part.trim()).filter(part => part.length > 0);
+    
+    if (parts.length < 4) {
+      return false;
+    }
+
+    const [country, city, street, house, apartment] = parts;
+
+    if (!country || !/[а-яёa-z]/i.test(country)) {
+      return false;
+    }
+
+    if (!city || !/[а-яёa-z]/i.test(city)) {
+      return false;
+    }
+
+    if (!street || !/[а-яёa-z]/i.test(street)) {
+      return false;
+    }
+
+    if (!house || !/\d/.test(house)) {
+      return false;
+    }
+
+    if (apartment && !/[а-яёa-z\d]/i.test(apartment)) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const isAddressValid = () => {
+    if (!profile.address.trim()) {
+      return true; // Пустой адрес допустим
+    }
+    
+    if (selectedAddress !== null) {
+      return true;
+    }
+    
+    return validateAddressStructure(profile.address);
+  };
+
+  const getAddressValidationMessage = () => {
+    if (!profile.address.trim()) {
+      return 'Начните вводить адрес, и мы предложим варианты';
+    }
+
+    if (selectedAddress) {
+      return '✓ Адрес подтвержден';
+    }
+
+    const address = profile.address.trim();
+    const parts = address.split(',').map(part => part.trim()).filter(part => part.length > 0);
+
+    if (parts.length < 4) {
+      return `Укажите адрес в формате: Страна, Город, Улица, Дом${parts.length < 2 ? '' : ', Квартира (необязательно)'}`;
+    }
+
+    const [country, city, street, house] = parts;
+
+    if (!country || !/[а-яёa-z]/i.test(country)) {
+      return 'Укажите корректную страну';
+    }
+
+    if (!city || !/[а-яёa-z]/i.test(city)) {
+      return 'Укажите корректный город';
+    }
+
+    if (!street || !/[а-яёa-z]/i.test(street)) {
+      return 'Укажите корректную улицу';
+    }
+
+    if (!house || !/\d/.test(house)) {
+      return 'Укажите корректный номер дома';
+    }
+
+    return '✓ Адрес корректен';
   };
 
   const handleInputChange = (e) => {
@@ -55,18 +218,67 @@ const UserProfile = () => {
     }));
   };
 
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      address: value
+    }));
+    setSelectedAddress(null);
+    
+    // Очищаем предыдущий таймер
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Устанавливаем новый таймер с задержкой 300ms
+    debounceTimerRef.current = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 300);
+  };
+
+  const handleAddressSelect = (suggestion) => {
+    setProfile(prev => ({
+      ...prev,
+      address: suggestion.value
+    }));
+    setSelectedAddress(suggestion);
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Валидация адреса
+    if (profile.address.trim() && !isAddressValid()) {
+      setError('Пожалуйста, проверьте корректность введенного адреса или выберите из предложенных вариантов');
+      return;
+    }
+    
     setUpdating(true);
     setError(null);
     setSuccess(false);
 
     try {
-      await api.put('/auth/profile/', profile);
+      // Подготавливаем данные для отправки
+      const profileData = { ...profile };
+      
+      // Если дата рождения пустая, отправляем null
+      if (!profileData.birth_date) {
+        profileData.birth_date = null;
+      }
+
+      console.log('Отправляем данные профиля:', profileData);
+      
+      const response = await api.put('/auth/profile/', profileData);
+      console.log('Ответ сервера:', response.data);
+      
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      setError('Ошибка обновления профиля');
+      console.error('Ошибка обновления профиля:', error);
+      setError(error.response?.data?.error || 'Ошибка обновления профиля');
     } finally {
       setUpdating(false);
     }
@@ -114,7 +326,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="user-profile">
+    <div className="user-profile" key={refreshKey}>
       <div className="profile-container">
         <h1>Личный кабинет</h1>
         
@@ -175,15 +387,44 @@ const UserProfile = () => {
                 </div>
               </div>
               
-              <div className="form-group">
+              <div className="form-group address-autocomplete">
                 <label htmlFor="address">Адрес</label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={profile.address}
-                  onChange={handleInputChange}
-                  rows="3"
-                />
+                <div className="address-input-wrapper">
+                  <textarea
+                    ref={addressInputRef}
+                    id="address"
+                    name="address"
+                    value={profile.address}
+                    onChange={handleAddressChange}
+                    onFocus={() => {
+                      if (addressSuggestions.length > 0) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    placeholder="Россия, Москва, ул. Ленина, д. 10, кв. 5"
+                    rows="3"
+                    className={profile.address && !isAddressValid() ? 'invalid' : ''}
+                  />
+                  {showSuggestions && addressSuggestions.length > 0 && (
+                    <div ref={suggestionsRef} className="address-suggestions">
+                      {addressSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="suggestion-item"
+                          onClick={() => handleAddressSelect(suggestion)}
+                        >
+                          <div className="suggestion-value">{suggestion.value}</div>
+                          {suggestion.data.postal_code && (
+                            <div className="suggestion-postal">Индекс: {suggestion.data.postal_code}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <small className={`form-hint ${isAddressValid() ? 'success' : profile.address ? 'error' : ''}`}>
+                  {getAddressValidationMessage()}
+                </small>
               </div>
               
               <div className="form-group">

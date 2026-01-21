@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/authSlice';
+import { apiHelpers } from '../../utils/apiConfig';
 import './Header.css';
 
 const Header = () => {
@@ -10,6 +11,7 @@ const Header = () => {
   const { isAuthenticated, user } = useSelector(state => state.auth);
   const { count } = useSelector(state => state.cart);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -24,6 +26,38 @@ const Header = () => {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  // Fetch pending orders count for admin/manager
+  useEffect(() => {
+    const fetchPendingOrders = async () => {
+      if (isAuthenticated && (user?.role === 'admin' || user?.role === 'manager')) {
+        try {
+          const response = await apiHelpers.get('/orders/admin/all/', {
+            page: 1,
+            page_size: 100
+          });
+          
+          // Count orders that are not shipped or delivered
+          const pendingStatuses = ['pending', 'paid', 'processing'];
+          const pendingCount = response.data.orders.filter(
+            order => pendingStatuses.includes(order.status)
+          ).length;
+          
+          setPendingOrdersCount(pendingCount);
+        } catch (error) {
+          console.error('Error fetching pending orders:', error);
+          setPendingOrdersCount(0);
+        }
+      }
+    };
+
+    fetchPendingOrders();
+    
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchPendingOrders, 30000);
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -63,12 +97,22 @@ const Header = () => {
         </nav>
 
         <div className="header-right">
-          <Link to="/cart" className="cart-link" onClick={closeMobileMenu}>
-            <div className="cart-icon">
-              🛒
-              {count > 0 && <span className="cart-count">{count}</span>}
-            </div>
-          </Link>
+          {/* Show orders icon for admin/manager, cart for customers */}
+          {isAuthenticated && (user?.role === 'admin' || user?.role === 'manager') ? (
+            <Link to="/orders/manage" className="cart-link" onClick={closeMobileMenu}>
+              <div className="cart-icon orders-icon">
+                📋
+                {pendingOrdersCount > 0 && <span className="cart-count">{pendingOrdersCount}</span>}
+              </div>
+            </Link>
+          ) : (
+            <Link to="/cart" className="cart-link" onClick={closeMobileMenu}>
+              <div className="cart-icon">
+                🛒
+                {count > 0 && <span className="cart-count">{count}</span>}
+              </div>
+            </Link>
+          )}
 
           <button 
             className="mobile-menu-toggle"
