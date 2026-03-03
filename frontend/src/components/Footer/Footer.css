@@ -68,11 +68,16 @@
 }
 
 .social-link.telegram:hover {
-  background: rgba(0, 136, 204, 0.2);
-  border-color: #0088cc;
+  background: rgba(0, 91, 255, 0.2);
+  border-color: #005bff;
 }
 
 .social-link.ozon:hover {
+  background: rgba(0, 91, 255, 0.2);
+  border-color: #005bff;
+}
+
+.social-link.vk:hover {
   background: rgba(0, 91, 255, 0.2);
   border-color: #005bff;
 }

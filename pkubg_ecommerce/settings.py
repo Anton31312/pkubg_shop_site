@@ -44,6 +44,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
+    'csp',  # Django CSP
 ]
 
 LOCAL_APPS = [
@@ -61,6 +62,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # CSP middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -161,10 +163,14 @@ REST_FRAMEWORK = {
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # Увеличено до 24 часов
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),  # Увеличено до 30 дней
     'ROTATE_REFRESH_TOKENS': True,
 }
+
+# Session Settings
+SESSION_COOKIE_AGE = 86400  # 24 часа в секундах
+SESSION_SAVE_EVERY_REQUEST = True  # Обновлять сессию при каждом запросе
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
@@ -213,3 +219,21 @@ LOGGING = {
         },
     },
 }
+
+# Content Security Policy Settings
+# Настройки для корректной работы с изображениями и медиа-файлами
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")  # unsafe-inline для inline скриптов, но без eval
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:", "http:")  # Разрешаем загрузку изображений
+CSP_FONT_SRC = ("'self'", "data:", "https:", "http:")
+CSP_CONNECT_SRC = ("'self'", "https://suggestions.dadata.ru", "https://api.robokassa.ru")
+CSP_MEDIA_SRC = ("'self'", "blob:", "data:")
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_FORM_ACTION = ("'self'", "https://auth.robokassa.ru")
+
+# В режиме разработки можно отключить CSP
+if DEBUG:
+    CSP_REPORT_ONLY = True  # Только отчеты, не блокировка

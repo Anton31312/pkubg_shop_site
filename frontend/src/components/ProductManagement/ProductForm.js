@@ -46,6 +46,53 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
 
   useEffect(() => {
     if (product) {
+      console.log('ProductForm: Loading product data', product);
+      console.log('ProductForm: nutritional_info from product', product.nutritional_info);
+      
+      // Создаем дефолтную структуру nutritional_info
+      const defaultNutritionalInfo = {
+        per_100g: {
+          calories: 0,
+          proteins: 0.0,
+          fats: 0.0,
+          carbohydrates: 0.0,
+          fiber: 0.0,
+          sugar: 0.0,
+          salt: 0.0,
+          sodium: 0.0
+        },
+        allergens: [],
+        dietary_info: {
+          is_vegetarian: false,
+          is_vegan: false,
+          is_gluten_free: false,
+          is_lactose_free: false,
+          is_sugar_free: false,
+          is_organic: false
+        }
+      };
+
+      // Мержим данные из продукта с дефолтными значениями
+      const mergedNutritionalInfo = product.nutritional_info ? {
+        per_100g: {
+          calories: Number(product.nutritional_info.per_100g?.calories) || 0,
+          proteins: Number(product.nutritional_info.per_100g?.proteins) || 0.0,
+          fats: Number(product.nutritional_info.per_100g?.fats) || 0.0,
+          carbohydrates: Number(product.nutritional_info.per_100g?.carbohydrates) || 0.0,
+          fiber: Number(product.nutritional_info.per_100g?.fiber) || 0.0,
+          sugar: Number(product.nutritional_info.per_100g?.sugar) || 0.0,
+          salt: Number(product.nutritional_info.per_100g?.salt) || 0.0,
+          sodium: Number(product.nutritional_info.per_100g?.sodium) || 0.0
+        },
+        allergens: product.nutritional_info.allergens || [],
+        dietary_info: {
+          ...defaultNutritionalInfo.dietary_info,
+          ...(product.nutritional_info.dietary_info || {})
+        }
+      } : defaultNutritionalInfo;
+
+      console.log('ProductForm: Merged nutritional_info', mergedNutritionalInfo);
+
       setFormData({
         name: product.name || '',
         slug: product.slug || '',
@@ -59,7 +106,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         is_low_protein: product.is_low_protein || false,
         stock_quantity: product.stock_quantity || '',
         is_active: product.is_active !== undefined ? product.is_active : true,
-        nutritional_info: product.nutritional_info || formData.nutritional_info
+        nutritional_info: mergedNutritionalInfo
       });
     }
   }, [product]);

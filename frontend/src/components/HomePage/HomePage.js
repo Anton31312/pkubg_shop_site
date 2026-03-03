@@ -21,7 +21,7 @@ const HomePage = () => {
     const totalSlides = Math.ceil(categories.length / 10) || 1;
     const interval = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % totalSlides);
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [categories.length]);

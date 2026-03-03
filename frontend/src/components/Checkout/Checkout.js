@@ -13,6 +13,8 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
   
   const [orderData, setOrderData] = useState({
     shipping_address: '',
@@ -299,20 +301,23 @@ const Checkout = () => {
         delivery_method: 'courier'
       });
 
-      const orderId = orderResponse.data.order_id;
-
-      // Создаем платеж через RoboKassa
-      const paymentResponse = await api.post('/integrations/payment/create/', {
-        order_id: orderId,
-        success_url: `${window.location.origin}/payment-result?payment=success`,
-        fail_url: `${window.location.origin}/payment-result?payment=failed`
-      });
+      const createdOrderId = orderResponse.data.order_id;
+      setOrderId(createdOrderId);
 
       // Очищаем корзину
       dispatch(clearCart());
 
-      // Перенаправляем на страницу оплаты RoboKassa
-      window.location.href = paymentResponse.data.payment_url;
+      // Показываем сообщение об успешном создании заказа
+      setOrderSuccess(true);
+      setLoading(false);
+
+      // ВРЕМЕННО ОТКЛЮЧЕНО: Создание платежа через RoboKassa
+      // const paymentResponse = await api.post('/integrations/payment/create/', {
+      //   order_id: createdOrderId,
+      //   success_url: `${window.location.origin}/payment-result?payment=success`,
+      //   fail_url: `${window.location.origin}/payment-result?payment=failed`
+      // });
+      // window.location.href = paymentResponse.data.payment_url;
 
     } catch (err) {
       console.error('Checkout error:', err);
@@ -326,6 +331,38 @@ const Checkout = () => {
 
   if (!isAuthenticated || count === 0) {
     return null;
+  }
+
+  // Модальное окно успешного заказа
+  if (orderSuccess) {
+    return (
+      <div className="checkout">
+        <div className="checkout-container">
+          <div className="order-success-modal">
+            <div className="success-icon">✅</div>
+            <h2>Благодарим за заказ!</h2>
+            <p className="order-number">Номер заказа: #{orderId}</p>
+            <p className="success-message">
+              С вами в скором времени свяжется менеджер для подтверждения заказа и уточнения деталей доставки.
+            </p>
+            <div className="success-actions">
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/orders')}
+              >
+                Мои заказы
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => navigate('/')}
+              >
+                На главную
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -432,10 +469,10 @@ const Checkout = () => {
               <div className="form-section">
                 <h3>Способ оплаты</h3>
                 <div className="payment-method-info">
-                  <div className="payment-icon">💳</div>
+                  <div className="payment-icon">📞</div>
                   <div className="payment-details">
-                    <strong>Онлайн-оплата через RoboKassa</strong>
-                    <p>Безопасная оплата банковской картой или другими способами</p>
+                    <strong>Оплата по согласованию с менеджером</strong>
+                    <p>После оформления заказа с вами свяжется менеджер для уточнения деталей и способа оплаты</p>
                   </div>
                 </div>
               </div>
@@ -445,7 +482,7 @@ const Checkout = () => {
                 className="btn btn-primary btn-large"
                 disabled={loading || !orderData.shipping_address.trim()}
               >
-                {loading ? 'Обработка...' : 'Перейти к оплате'}
+                {loading ? 'Обработка...' : 'Оформить заказ'}
               </button>
             </form>
           </div>

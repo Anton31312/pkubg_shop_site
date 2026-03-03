@@ -46,6 +46,25 @@ const Footer = () => {
                 }}
               />
             </a>
+
+            <a 
+              href="https://vk.com/pkubg" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-link vk"
+              title="VK"
+            >
+              <img 
+                src="/vk.png" 
+                alt="VK" 
+                className="social-icon"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  console.error('Failed to load VK icon');
+                }}
+              />
+            </a>
+
           </div>
         </div>
       </div>

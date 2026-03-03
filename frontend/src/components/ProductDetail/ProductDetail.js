@@ -118,14 +118,6 @@ const ProductDetail = () => {
             <span className="nutrition-label">Углеводы:</span>
             <span className="nutrition-value">{nutrition.carbohydrates} г</span>
           </div>
-          <div className="nutrition-item">
-            <span className="nutrition-label">Клетчатка:</span>
-            <span className="nutrition-value">{nutrition.fiber} г</span>
-          </div>
-          <div className="nutrition-item">
-            <span className="nutrition-label">Сахар:</span>
-            <span className="nutrition-value">{nutrition.sugar} г</span>
-          </div>
         </div>
       </div>
     );

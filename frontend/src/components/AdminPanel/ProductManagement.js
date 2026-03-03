@@ -17,7 +17,27 @@ const ProductManagement = () => {
     is_gluten_free: false,
     is_low_protein: false,
     stock_quantity: '',
-    nutritional_info: {},
+    nutritional_info: {
+      per_100g: {
+        calories: 0,
+        proteins: 0.0,
+        fats: 0.0,
+        carbohydrates: 0.0,
+        fiber: 0.0,
+        sugar: 0.0,
+        salt: 0.0,
+        sodium: 0.0
+      },
+      allergens: [],
+      dietary_info: {
+        is_vegetarian: false,
+        is_vegan: false,
+        is_gluten_free: false,
+        is_lactose_free: false,
+        is_sugar_free: false,
+        is_organic: false
+      }
+    },
     is_active: true
   });
 
@@ -76,7 +96,49 @@ const ProductManagement = () => {
   };
 
   const handleEdit = (product) => {
+    console.log('AdminPanel: Editing product', product);
+    console.log('AdminPanel: nutritional_info from product', product.nutritional_info);
+    
     setEditingProduct(product);
+    
+    // Создаем дефолтную структуру nutritional_info
+    const defaultNutritionalInfo = {
+      per_100g: {
+        calories: 0,
+        proteins: 0.0,
+        fats: 0.0,
+        carbohydrates: 0.0,
+        fiber: 0.0,
+        sugar: 0.0,
+        salt: 0.0,
+        sodium: 0.0
+      },
+      allergens: [],
+      dietary_info: {
+        is_vegetarian: false,
+        is_vegan: false,
+        is_gluten_free: false,
+        is_lactose_free: false,
+        is_sugar_free: false,
+        is_organic: false
+      }
+    };
+
+    // Мержим данные из продукта с дефолтными значениями
+    const mergedNutritionalInfo = product.nutritional_info ? {
+      per_100g: {
+        ...defaultNutritionalInfo.per_100g,
+        ...(product.nutritional_info.per_100g || {})
+      },
+      allergens: product.nutritional_info.allergens || [],
+      dietary_info: {
+        ...defaultNutritionalInfo.dietary_info,
+        ...(product.nutritional_info.dietary_info || {})
+      }
+    } : defaultNutritionalInfo;
+
+    console.log('AdminPanel: Merged nutritional_info', mergedNutritionalInfo);
+    
     setFormData({
       name: product.name,
       description: product.description,
@@ -85,7 +147,7 @@ const ProductManagement = () => {
       is_gluten_free: product.is_gluten_free,
       is_low_protein: product.is_low_protein,
       stock_quantity: product.stock_quantity,
-      nutritional_info: product.nutritional_info || {},
+      nutritional_info: mergedNutritionalInfo,
       is_active: product.is_active
     });
     setShowForm(true);
@@ -111,7 +173,27 @@ const ProductManagement = () => {
       is_gluten_free: false,
       is_low_protein: false,
       stock_quantity: '',
-      nutritional_info: {},
+      nutritional_info: {
+        per_100g: {
+          calories: 0,
+          proteins: 0.0,
+          fats: 0.0,
+          carbohydrates: 0.0,
+          fiber: 0.0,
+          sugar: 0.0,
+          salt: 0.0,
+          sodium: 0.0
+        },
+        allergens: [],
+        dietary_info: {
+          is_vegetarian: false,
+          is_vegan: false,
+          is_gluten_free: false,
+          is_lactose_free: false,
+          is_sugar_free: false,
+          is_organic: false
+        }
+      },
       is_active: true
     });
     setEditingProduct(null);
