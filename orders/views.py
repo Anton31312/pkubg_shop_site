@@ -44,7 +44,7 @@ def get_cart(request):
                 'is_gluten_free': item.product.is_gluten_free,
                 'is_low_protein': item.product.is_low_protein,
                 'images': [{
-                    'image': primary_image.image.url if primary_image else None,
+                    'image': request.build_absolute_uri(primary_image.image.url) if primary_image else None,
                     'alt_text': primary_image.alt_text if primary_image else item.product.name,
                     'is_primary': True
                 }] if primary_image else []
@@ -226,7 +226,7 @@ def get_user_orders(request):
                     'name': item.product.name,
                     'slug': item.product.slug,
                     'images': [{
-                        'image': primary_image.image.url if primary_image else None,
+                        'image': request.build_absolute_uri(primary_image.image.url) if primary_image else None,
                         'alt_text': primary_image.alt_text if primary_image else item.product.name,
                         'is_primary': True
                     }] if primary_image else []

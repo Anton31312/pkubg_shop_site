@@ -29,6 +29,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     tags = ArticleTagSerializer(many=True, read_only=True)
+    featured_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Article
@@ -38,6 +39,15 @@ class ArticleListSerializer(serializers.ModelSerializer):
             'is_published', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_featured_image(self, obj):
+        """Return absolute URL for featured image."""
+        if obj.featured_image:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.featured_image.url)
+            return obj.featured_image.url
+        return None
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
@@ -46,6 +56,7 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     category = ArticleCategorySerializer(read_only=True)
     tags = ArticleTagSerializer(many=True, read_only=True)
+    featured_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Article
@@ -55,6 +66,15 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
             'featured_image', 'is_published', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+    
+    def get_featured_image(self, obj):
+        """Return absolute URL for featured image."""
+        if obj.featured_image:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.featured_image.url)
+            return obj.featured_image.url
+        return None
 
 
 class ArticleCreateUpdateSerializer(serializers.ModelSerializer):

@@ -17,10 +17,22 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     """Serializer for ProductImage model."""
     
+    image = serializers.SerializerMethodField()
+    
     class Meta:
         model = ProductImage
         fields = ['id', 'image', 'alt_text', 'is_primary']
         read_only_fields = ['id']
+    
+    def get_image(self, obj):
+        """Return absolute URL for image."""
+        if obj.image:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image.url)
+            # Fallback to relative URL if no request in context
+            return obj.image.url
+        return None
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -38,6 +50,13 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_active', 'created_at', 'updated_at', 'images'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def __init__(self, *args, **kwargs):
+        """Pass context to nested serializers."""
+        super().__init__(*args, **kwargs)
+        # Pass context to images serializer
+        if 'request' in self.context:
+            self.fields['images'].context.update(self.context)
     
     def validate_category(self, value):
         """Validate category exists."""
@@ -87,3 +106,10 @@ class ProductListSerializer(serializers.ModelSerializer):
             'is_gluten_free', 'is_low_protein', 'stock_quantity',
             'is_active', 'created_at', 'updated_at', 'images'
         ]
+    
+    def __init__(self, *args, **kwargs):
+        """Pass context to nested serializers."""
+        super().__init__(*args, **kwargs)
+        # Pass context to images serializer
+        if 'request' in self.context:
+            self.fields['images'].context.update(self.context)
