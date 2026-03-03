@@ -47,6 +47,9 @@ const ProductImageUpload = ({ product, onComplete, onCancel }) => {
         },
       });
       
+      console.log('Upload response:', response.data);
+      console.log('Image URL:', response.data.image);
+      
       setImages(prev => [...prev, response.data]);
     } catch (error) {
       console.error('Upload error:', error);

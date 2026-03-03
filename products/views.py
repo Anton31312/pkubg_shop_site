@@ -176,6 +176,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                 ).exclude(id=product_image.id).update(is_primary=False)
             
             serializer = ProductImageSerializer(product_image, context={'request': request})
+            logger.info(f"Image uploaded successfully. URL: {serializer.data.get('image')}")
+            logger.info(f"Full serializer data: {serializer.data}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         except Exception as e:

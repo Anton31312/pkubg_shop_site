@@ -29,7 +29,9 @@ class ProductImageSerializer(serializers.ModelSerializer):
         if obj.image:
             request = self.context.get('request')
             if request is not None:
-                return request.build_absolute_uri(obj.image.url)
+                # Build absolute URI
+                absolute_url = request.build_absolute_uri(obj.image.url)
+                return absolute_url
             # Fallback to relative URL if no request in context
             return obj.image.url
         return None
