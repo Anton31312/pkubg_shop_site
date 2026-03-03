@@ -6,7 +6,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+import logging
 from .address_suggestions import get_address_suggestions
+
+logger = logging.getLogger(__name__)
 
 def api_root(request):
     """API root endpoint with available endpoints."""
@@ -26,6 +32,31 @@ def api_root(request):
         'documentation': 'https://github.com/your-repo/docs'
     })
 
+@csrf_exempt
+@require_POST
+def csp_report(request):
+    """
+    Endpoint для приема отчетов о нарушениях Content Security Policy.
+    Логирует нарушения для анализа и улучшения политики безопасности.
+    """
+    try:
+        report = json.loads(request.body.decode('utf-8'))
+        csp_report = report.get('csp-report', {})
+        
+        # Логируем нарушение CSP
+        logger.warning(
+            f"CSP Violation: "
+            f"document-uri={csp_report.get('document-uri')}, "
+            f"blocked-uri={csp_report.get('blocked-uri')}, "
+            f"violated-directive={csp_report.get('violated-directive')}, "
+            f"original-policy={csp_report.get('original-policy')}"
+        )
+        
+        return JsonResponse({'status': 'ok'}, status=204)
+    except Exception as e:
+        logger.error(f"Error processing CSP report: {e}")
+        return JsonResponse({'status': 'error'}, status=400)
+
 urlpatterns = [
     path('', api_root, name='api_root'),
     path('admin/', admin.site.urls),
@@ -36,6 +67,7 @@ urlpatterns = [
     path('api/analytics/', include('analytics.urls')),
     path('api/integrations/', include('integrations.urls')),
     path('api/address-suggestions/', get_address_suggestions, name='address_suggestions'),
+    path('api/csp-report/', csp_report, name='csp_report'),
     path('monitoring/', include('monitoring.urls')),
 ]
 

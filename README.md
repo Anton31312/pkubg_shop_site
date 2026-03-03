@@ -273,16 +273,25 @@ cd frontend && npm test -- --run
 
 ```
 pkubg-ecommerce/
-├── accounts/          # Пользователи и аутентификация
-├── products/          # Каталог товаров
-├── orders/            # Заказы и корзина
-├── articles/          # Система управления контентом
-├── analytics/         # Аналитика
-├── integrations/      # Внешние интеграции (Robokassa)
-├── frontend/          # React приложение
-├── pkubg_ecommerce/   # Настройки Django
-├── .env.production    # Продакшн настройки
-└── requirements.txt   # Python зависимости
+├── accounts/                    # Пользователи и аутентификация
+├── products/                    # Каталог товаров
+├── orders/                      # Заказы и корзина
+├── articles/                    # Система управления контентом
+├── analytics/                   # Аналитика
+├── integrations/                # Внешние интеграции (Robokassa)
+├── frontend/                    # React приложение
+│   ├── src/                     # Исходный код
+│   ├── public/                  # Публичные файлы
+│   ├── .env.production          # Production настройки для React
+│   └── package.json             # Зависимости npm
+├── pkubg_ecommerce/             # Настройки Django
+├── logs/                        # Логи приложения
+├── .env.production              # Продакшн настройки
+├── requirements.txt             # Python зависимости
+├── check_security.py            # Скрипт проверки безопасности
+├── SECURITY.md                  # Документация по безопасности
+├── DEPLOY_SECURITY_CHECKLIST.md # Чеклист деплоя
+└── README.md                    # Этот файл
 ```
 
 ## Известные исправления
@@ -402,17 +411,25 @@ python manage.py run_monitoring --once
 ## Безопасность
 
 ### Продакшн настройки безопасности
-- HTTPS принудительное перенаправление
-- HSTS заголовки
-- Secure cookies
-- XSS защита
-- CSRF защита
+- ✅ HTTPS принудительное перенаправление
+- ✅ HSTS заголовки (HTTP Strict Transport Security)
+- ✅ Строгий Content Security Policy (CSP) без `unsafe-eval`
+- ✅ Secure cookies
+- ✅ XSS защита через CSP
+- ✅ CSRF защита
+- ✅ Clickjacking защита (X-Frame-Options: DENY)
+- ✅ SQL Injection защита через Django ORM
+- ✅ Отчеты о нарушениях CSP
 
 ### Рекомендации
-- Регулярно обновляйте зависимости
+- Регулярно обновляйте зависимости (`pip list --outdated`, `npm audit`)
 - Используйте сильные пароли для базы данных
-- Настройте файрвол
+- Настройте файрвол на сервере
 - Регулярно создавайте резервные копии
+- Проверяйте безопасность через [Mozilla Observatory](https://observatory.mozilla.org/)
+- Мониторьте логи на предмет подозрительной активности
+
+Подробная информация: [SECURITY.md](SECURITY.md)
 
 ## Полезные команды для управления сервером
 
@@ -468,7 +485,10 @@ npm install
 npm run build
 cd ..
 
-# 6. Перезапустить Gunicorn
+# 6. Проверить безопасность
+python check_security.py
+
+# 7. Перезапустить Gunicorn
 sudo systemctl restart pkubg
 ```
 

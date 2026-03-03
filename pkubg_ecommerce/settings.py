@@ -221,19 +221,164 @@ LOGGING = {
 }
 
 # Content Security Policy Settings
-# Настройки для корректной работы с изображениями и медиа-файлами
+# Строгая политика безопасности согласно рекомендациям web.dev
+# https://web.dev/articles/csp
+
+# Базовые настройки CSP
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")  # unsafe-inline для inline скриптов, но без eval
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:", "http:")  # Разрешаем загрузку изображений
-CSP_FONT_SRC = ("'self'", "data:", "https:", "http:")
-CSP_CONNECT_SRC = ("'self'", "https://suggestions.dadata.ru", "https://api.robokassa.ru")
+
+# Скрипты: только с нашего домена, без eval и inline
+# Для React production build это безопасно
+CSP_SCRIPT_SRC = ("'self'",)
+
+# Стили: разрешаем inline стили для React (через nonce в будущем)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # TODO: заменить на nonce
+
+# Изображения: разрешаем с нашего домена, data URIs и внешние HTTPS
+CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
+
+# Шрифты
+CSP_FONT_SRC = ("'self'", "data:")
+
+# API соединения: наш домен + внешние API
+CSP_CONNECT_SRC = (
+    "'self'",
+    "https://suggestions.dadata.ru",  # Dadata API
+    "https://api.robokassa.ru",       # Robokassa API
+)
+
+# Медиа файлы
 CSP_MEDIA_SRC = ("'self'", "blob:", "data:")
+
+# Запрещаем плагины (Flash и т.д.)
 CSP_OBJECT_SRC = ("'none'",)
+
+# Базовый URI
 CSP_BASE_URI = ("'self'",)
+
+# Запрещаем iframe embedding нашего сайта
 CSP_FRAME_ANCESTORS = ("'none'",)
+
+# Формы: только на наш домен и Robokassa
 CSP_FORM_ACTION = ("'self'", "https://auth.robokassa.ru")
 
-# В режиме разработки можно отключить CSP
+# Обновляем небезопасные запросы HTTP -> HTTPS
+CSP_UPGRADE_INSECURE_REQUESTS = True
+
+# Отчеты о нарушениях CSP
+CSP_REPORT_URI = '/api/csp-report/'
+
+# В режиме разработки используем report-only для тестирования
 if DEBUG:
-    CSP_REPORT_ONLY = True  # Только отчеты, не блокировка
+    CSP_REPORT_ONLY = True
+    # В dev режиме разрешаем eval для hot reload
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'")
+    CSP_CONNECT_SRC = CSP_CONNECT_SRC + ("ws:", "wss:", "http://localhost:*", "http://127.0.0.1:*")
+
+# ============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ БЕЗОПАСНОСТИ
+# ============================================================================
+
+# HTTPS и SSL настройки
+if not DEBUG:
+    # Принудительное перенаправление на HTTPS
+    SECURE_SSL_REDIRECT = True
+    
+    # HTTP Strict Transport Security (HSTS)
+    SECURE_HSTS_SECONDS = 31536000  # 1 год
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Защита от MIME-type sniffing
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+    # Защита от XSS в старых браузерах
+    SECURE_BROWSER_XSS_FILTER = True
+    
+    # Secure cookies
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # HTTPOnly cookies (защита от XSS)
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    
+    # SameSite cookies (защита от CSRF)
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    
+    # Proxy SSL header (для работы за nginx)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Защита от Clickjacking
+X_FRAME_OPTIONS = 'DENY'
+
+# Дополнительные заголовки безопасности
+# Эти заголовки можно также настроить в nginx для лучшей производительности
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# Ограничение размера загружаемых файлов (20MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
+
+# Настройки паролей
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,  # Минимум 8 символов
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Логирование безопасности
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django.security': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'pkubg_ecommerce': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Создаем директорию для логов если её нет
+import os
+logs_dir = BASE_DIR / 'logs'
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
