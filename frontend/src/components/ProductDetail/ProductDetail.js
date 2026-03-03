@@ -225,6 +225,15 @@ const ProductDetail = () => {
                 <p>Изображение недоступно</p>
               </div>
             )}
+
+            <div className="product-badges">
+              {currentProduct.is_gluten_free && (
+                <span className="badge gluten-free">Без глютена</span>
+              )}
+              {currentProduct.is_low_protein && (
+                <span className="badge low-protein">Низкобелковый</span>
+              )}
+            </div>
           </div>
           
           {currentProduct.images && currentProduct.images.length > 1 && (
@@ -252,14 +261,6 @@ const ProductDetail = () => {
             </div>
           )}
           
-          <div className="product-badges">
-            {currentProduct.is_gluten_free && (
-              <span className="badge gluten-free">Без глютена</span>
-            )}
-            {currentProduct.is_low_protein && (
-              <span className="badge low-protein">Низкобелковый</span>
-            )}
-          </div>
 
           <div className="product-price">
             {formatPrice(currentProduct.price)}
