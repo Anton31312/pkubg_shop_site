@@ -130,11 +130,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     def upload_image(self, request, slug=None):
         """Upload and optimize product image."""
         import logging
+        import os
+        from django.conf import settings
+        
         logger = logging.getLogger(__name__)
         
         logger.info(f"Upload image request for product: {slug}")
         logger.info(f"Request FILES: {list(request.FILES.keys())}")
         logger.info(f"Request data: {request.data}")
+        logger.info(f"MEDIA_ROOT: {settings.MEDIA_ROOT}")
+        logger.info(f"MEDIA_ROOT exists: {os.path.exists(settings.MEDIA_ROOT)}")
+        logger.info(f"MEDIA_ROOT writable: {os.access(settings.MEDIA_ROOT, os.W_OK)}")
         
         product = self.get_object()
         
@@ -156,10 +162,12 @@ class ProductViewSet(viewsets.ModelViewSet):
             is_primary = bool(is_primary_raw)
             
         logger.info(f"is_primary_raw: {is_primary_raw}, is_primary: {is_primary}")
+        logger.info(f"Original file: {image_file.name}, size: {image_file.size}, content_type: {image_file.content_type}")
         
         # Optimize image
         try:
             optimized_image = self._optimize_image(image_file)
+            logger.info(f"Image optimized: {optimized_image.name}, size: {optimized_image.size}")
             
             # Create ProductImage instance
             product_image = ProductImage.objects.create(
@@ -168,6 +176,22 @@ class ProductViewSet(viewsets.ModelViewSet):
                 alt_text=alt_text,
                 is_primary=is_primary
             )
+            
+            logger.info(f"ProductImage created: ID={product_image.id}")
+            logger.info(f"Image path: {product_image.image.name}")
+            logger.info(f"Image URL: {product_image.image.url}")
+            
+            # Check if file exists on disk
+            full_path = os.path.join(settings.MEDIA_ROOT, product_image.image.name)
+            file_exists = os.path.exists(full_path)
+            logger.info(f"File exists on disk: {file_exists}")
+            if file_exists:
+                file_size = os.path.getsize(full_path)
+                logger.info(f"File size on disk: {file_size} bytes")
+            else:
+                logger.error(f"File NOT found at: {full_path}")
+                logger.error(f"Directory exists: {os.path.exists(os.path.dirname(full_path))}")
+                logger.error(f"Directory writable: {os.access(os.path.dirname(full_path), os.W_OK)}")
             
             # If this is set as primary, unset other primary images
             if is_primary:
@@ -181,40 +205,93 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         except Exception as e:
+            logger.error(f"Image upload failed: {str(e)}", exc_info=True)
             return Response(
-                {'error': f'Image optimization failed: {str(e)}'}, 
+                {'error': f'Image upload failed: {str(e)}'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
     
     def _optimize_image(self, image_file):
         """Optimize uploaded image for web use."""
-        # Open image with PIL
-        img = Image.open(image_file)
+        import logging
+        logger = logging.getLogger(__name__)
         
-        # Convert to RGB if necessary
-        if img.mode in ('RGBA', 'LA', 'P'):
-            img = img.convert('RGB')
+        logger.info(f"Optimizing image: {image_file.name}, size: {image_file.size}")
         
-        # Resize if too large (max 1200px width)
-        max_width = 1200
-        if img.width > max_width:
-            ratio = max_width / img.width
-            new_height = int(img.height * ratio)
-            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-        
-        # Save optimized image to BytesIO
-        output = BytesIO()
-        img.save(output, format='JPEG', quality=85, optimize=True)
-        output.seek(0)
-        
-        # Create new InMemoryUploadedFile
-        optimized_file = InMemoryUploadedFile(
-            output, 'ImageField', 
-            f"{image_file.name.split('.')[0]}_optimized.jpg",
-            'image/jpeg', sys.getsizeof(output), None
-        )
-        
-        return optimized_file
+        try:
+            # Open image with PIL
+            img = Image.open(image_file)
+            logger.info(f"Image opened: mode={img.mode}, size={img.size}, format={img.format}")
+            
+            # Determine output format
+            has_transparency = img.mode in ('RGBA', 'LA', 'P') and (
+                img.mode == 'P' and 'transparency' in img.info or
+                img.mode in ('RGBA', 'LA')
+            )
+            
+            # If image has transparency, keep as PNG
+            if has_transparency:
+                logger.info("Image has transparency, keeping as PNG")
+                output_format = 'PNG'
+                file_extension = 'png'
+                
+                # Convert palette images to RGBA for better quality
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+            else:
+                logger.info("Image has no transparency, converting to JPEG")
+                output_format = 'JPEG'
+                file_extension = 'jpg'
+                
+                # Convert to RGB if necessary
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    logger.info(f"Converting from {img.mode} to RGB")
+                    # Create white background
+                    if img.mode == 'RGBA':
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+                        img = background
+                    else:
+                        img = img.convert('RGB')
+            
+            # Resize if too large (max 1200px width)
+            max_width = 1200
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                logger.info(f"Resizing from {img.size} to ({max_width}, {new_height})")
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Save optimized image to BytesIO
+            output = BytesIO()
+            if output_format == 'PNG':
+                img.save(output, format='PNG', optimize=True)
+            else:
+                img.save(output, format='JPEG', quality=85, optimize=True)
+            output.seek(0)
+            
+            # Get original filename without extension
+            original_name = image_file.name.rsplit('.', 1)[0]
+            
+            # Create new InMemoryUploadedFile
+            optimized_file = InMemoryUploadedFile(
+                output, 
+                'ImageField', 
+                f"{original_name}_optimized.{file_extension}",
+                f'image/{file_extension}',
+                output.getbuffer().nbytes,
+                None
+            )
+            
+            logger.info(f"Image optimized successfully: {optimized_file.name}, size: {optimized_file.size}")
+            return optimized_file
+            
+        except Exception as e:
+            logger.error(f"Error optimizing image: {str(e)}", exc_info=True)
+            # If optimization fails, return original file
+            logger.warning("Returning original file without optimization")
+            image_file.seek(0)
+            return image_file
     
     @action(detail=True, methods=['patch'], permission_classes=[IsAdminOrManager])
     def toggle_active(self, request, slug=None):
