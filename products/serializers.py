@@ -49,7 +49,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'description', 'price', 'category', 'category_detail',
             'manufacturer', 'composition', 'storage_conditions',
             'is_gluten_free', 'is_low_protein', 'nutritional_info', 'stock_quantity',
-            'is_active', 'created_at', 'updated_at', 'images'
+            'is_active', 'created_at', 'updated_at', 'images', 'is_lactose_free', 'is_egg_free'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
     
@@ -105,7 +105,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'price', 'category',
             'manufacturer', 'composition', 'storage_conditions',
-            'is_gluten_free', 'is_low_protein', 'stock_quantity',
+            'is_gluten_free', 'is_lactose_free', 'is_egg_free', 'is_low_protein', 'stock_quantity',
             'is_active', 'created_at', 'updated_at', 'images'
         ]
     

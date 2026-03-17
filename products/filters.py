@@ -18,6 +18,8 @@ class ProductFilter(django_filters.FilterSet):
     # Dietary filters
     is_gluten_free = django_filters.BooleanFilter(label='Gluten Free')
     is_low_protein = django_filters.BooleanFilter(label='Low Protein')
+    is_lactose_free = django_filters.BooleanFilter(label='Lactose Free')
+    is_egg_free = django_filters.BooleanFilter(label='Egg Free')
     
     # Price range filtering
     min_price = django_filters.NumberFilter(field_name='price', lookup_expr='gte', label='Min Price')
@@ -31,7 +33,7 @@ class ProductFilter(django_filters.FilterSet):
     
     class Meta:
         model = Product
-        fields = ['category', 'is_gluten_free', 'is_low_protein', 'is_active', 'manufacturer']
+        fields = ['category', 'is_gluten_free', 'is_low_protein', 'is_active', 'manufacturer', 'is_lactose_free', 'is_egg_free']
     
     def filter_search(self, queryset, name, value):
         """Filter products by search term in name or description."""

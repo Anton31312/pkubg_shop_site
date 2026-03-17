@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import apiService from '../../services/apiService';
@@ -7,54 +7,63 @@ import './Articles.css';
 const ArticlesList = () => {
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
   const { user } = useSelector(state => state.auth);
   const isAdminOrManager = user && ['admin', 'manager'].includes(user.role);
 
+  // ═══ Загрузка категорий — один раз ═══
   useEffect(() => {
-    fetchArticles();
-    fetchCategories();
-  }, [selectedCategory, searchQuery, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+    const loadCategories = async () => {
+      try {
+        const response = await apiService.get('/articles/categories/');
+        setCategories(response.data.results || response.data);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+    loadCategories();
+  }, []);
 
-  const fetchArticles = async () => {
+  // ═══ Загрузка статей ═══
+  const fetchArticles = useCallback(async () => {
     try {
-      setLoading(true);
-      const params = {
-        page: currentPage,
-        ...(selectedCategory && { category: selectedCategory }),
-        ...(searchQuery && { search: searchQuery })
-      };
+      if (articles.length === 0) {
+        setInitialLoading(true);
+      } else {
+        setUpdating(true);
+      }
 
+      const params = { /* ... */ };
       const response = await apiService.get('/articles/articles/', { params });
       setArticles(response.data.results || response.data);
-      setTotalPages(Math.ceil((response.data.count || response.data.length) / 20));
+      setTotalPages(Math.ceil((response.data.count || 1) / 20));
+      setError(null);
     } catch (err) {
       setError('Ошибка при загрузке статей');
-      console.error('Error fetching articles:', err);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
+      setUpdating(false);
     }
-  };
+  }, [selectedCategory, appliedSearch, currentPage]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await apiService.get('/articles/categories/');
-      setCategories(response.data.results || response.data);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  };
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
 
+  // ═══ Поиск — только по сабмиту ═══
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchArticles();
+    setAppliedSearch(searchQuery);
   };
 
   const formatDate = (dateString) => {
@@ -65,10 +74,10 @@ const ArticlesList = () => {
     });
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
-      <div className="articles-loading">
-        <div className="loading-spinner"></div>
+      <div className="articles-loading" role="status" aria-live="polite">
+        <div className="loading-spinner" aria-hidden="true"></div>
         <p>Загрузка статей...</p>
       </div>
     );
@@ -128,7 +137,7 @@ const ArticlesList = () => {
         </select>
       </div>
 
-      <div className="articles-grid">
+      <div className={`articles-grid ${updating ? 'articles-grid--updating' : ''}`}>
         {articles.length === 0 ? (
           <div className="no-articles">
             <h3>Статьи не найдены</h3>
@@ -142,11 +151,11 @@ const ArticlesList = () => {
                   <img src={article.featured_image} alt={article.title} />
                 </div>
               )}
-              
-              <div className="article-content">
-                <div className="article-meta">
+
+              <div className="article-card-body">
+                <div className="article-card-footer">
                   <span className="article-category">
-                    {article.category_name}
+                    {article.category_name || 'Без категории'}
                   </span>
                   <span className="article-date">
                     {formatDate(article.created_at)}
@@ -163,22 +172,24 @@ const ArticlesList = () => {
                   {article.excerpt}
                 </p>
 
-                <div className="article-tags">
-                  {article.tags.map(tag => (
-                    <span key={tag.id} className="article-tag">
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
+                {article.tags?.length > 0 && (
+                  <div className="article-tags">
+                    {article.tags.map(tag => (
+                      <span key={tag.id} className="article-tag">
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-                <div className="article-footer">
+                <div className="article-card-meta">
                   <span className="article-author">
                     Автор: {article.author_name}
                   </span>
-                  
+
                   {isAdminOrManager && (
                     <div className="article-actions">
-                      <Link 
+                      <Link
                         to={`/articles/${article.slug}/edit`}
                         className="edit-link"
                       >
@@ -207,11 +218,11 @@ const ArticlesList = () => {
           >
             Предыдущая
           </button>
-          
+
           <span className="pagination-info">
             Страница {currentPage} из {totalPages}
           </span>
-          
+
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}

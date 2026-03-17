@@ -35,6 +35,8 @@ const ProductFilters = ({ categories = [], manufacturers = [], filters, onFilter
       manufacturers: [],
       isGlutenFree: false,
       isLowProtein: false,
+      isLactoseFree: false,
+      isEggFree: false,
       minPrice: '',
       maxPrice: '',
     });
@@ -162,6 +164,24 @@ const ProductFilters = ({ categories = [], manufacturers = [], filters, onFilter
             />
             <span className="checkmark"></span>
             Низкобелковый
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={filters.isLactoseFree}
+              onChange={(e) => handleCheckboxChange('isLactoseFree', e.target.checked)}
+            />
+            <span className="checkmark"></span>
+            Без лактозы
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={filters.isEggFree}
+              onChange={(e) => handleCheckboxChange('isEggFree', e.target.checked)}
+            />
+            <span className="checkmark"></span>
+            Без яиц
           </label>
         </div>
       </div>

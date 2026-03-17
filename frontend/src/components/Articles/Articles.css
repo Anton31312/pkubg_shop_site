@@ -113,11 +113,17 @@
   object-fit: cover;
 }
 
-.article-content {
+.article-card-body {
   padding: 20px;
 }
 
-.article-meta {
+.article-body {
+  line-height: 1.8;
+  color: #333;
+  font-size: 16px;
+}
+
+.article-card-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -176,7 +182,7 @@
   border: 1px solid #e9ecef;
 }
 
-.article-footer {
+.article-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -270,8 +276,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .articles-error,
@@ -395,7 +406,7 @@
   margin-bottom: 30px;
 }
 
-.article-header .article-meta {
+.article-header .article-detail-meta {
   margin-bottom: 20px;
   font-size: 14px;
 }
@@ -439,45 +450,40 @@
   border-radius: 0 6px 6px 0;
 }
 
-.article-content {
-  line-height: 1.8;
-  color: #333;
-  font-size: 16px;
-}
 
-.article-content h2 {
+.article-body h2 {
   color: #333;
   margin-top: 40px;
   margin-bottom: 20px;
   font-size: 1.8rem;
 }
 
-.article-content h3 {
+.article-body h3 {
   color: #333;
   margin-top: 30px;
   margin-bottom: 15px;
   font-size: 1.4rem;
 }
 
-.article-content p {
+.article-body p {
   margin-bottom: 20px;
 }
 
-.article-content ul,
-.article-content ol {
+.article-body ul,
+.article-body ol {
   margin-bottom: 20px;
   padding-left: 30px;
 }
 
-.article-content li {
+.article-body li {
   margin-bottom: 8px;
 }
 
-.article-content strong {
+.article-body strong {
   font-weight: 600;
 }
 
-.article-footer {
+.article-detail-footer {
   margin-top: 40px;
   padding-top: 30px;
   border-top: 1px solid #e0e0e0;
@@ -583,6 +589,12 @@
   outline: none;
   border-color: #2c5530;
   box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 .form-textarea.content-editor {
@@ -705,6 +717,12 @@
   .articles-grid {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .articles-grid--updating {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
   }
 
   .article-detail-container {

@@ -4,8 +4,16 @@ import { useSelector } from 'react-redux';
 import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute';
 import RouteRefresh from '../components/RouteRefresh/RouteRefresh';
 import Loading from '../components/Loading/Loading';
+import NotFoundPage from "../NotFoundPage";
 
-// Lazy load components for better performance
+// Юридические документы (не lazy — маленькие, текстовые)
+import PrivacyPolicy from "../legal/PrivacyPolicy";
+import CookiePolicy from "../legal/CookiePolicy";
+import PersonalDataConsent from "../legal/PersonalDataConsent";
+import PublicOffer from "../legal/PublicOffer";
+import TermsOfUse from "../legal/TermsOfUse";
+
+// Lazy load
 const HomePage = React.lazy(() => import('../components/HomePage/HomePage'));
 const ProductCatalog = React.lazy(() => import('../components/ProductCatalog/ProductCatalog'));
 const ShoppingCart = React.lazy(() => import('../components/ShoppingCart/ShoppingCart'));
@@ -14,7 +22,6 @@ const RegisterForm = React.lazy(() => import('../components/Auth/RegisterForm'))
 const UserProfile = React.lazy(() => import('../components/UserProfile/UserProfile'));
 const AdminPanel = React.lazy(() => import('../components/AdminPanel/AdminPanel'));
 const Checkout = React.lazy(() => import('../components/Checkout/Checkout'));
-
 const ProductDetail = React.lazy(() => import('../components/ProductDetail/ProductDetail'));
 const ProductManagement = React.lazy(() => import('../components/ProductManagement/ProductManagement'));
 const OrderManagement = React.lazy(() => import('../components/OrderManagement/OrderManagement'));
@@ -23,13 +30,9 @@ const ArticleDetail = React.lazy(() => import('../components/Articles/ArticleDet
 const ArticleForm = React.lazy(() => import('../components/Articles/ArticleForm'));
 const AboutPage = React.lazy(() => import('../components/AboutPage/AboutPage'));
 const PaymentSuccess = React.lazy(() => import('../components/PaymentSuccess/PaymentSuccess'));
+const LegalInfoAdmin = React.lazy(() => import('../components/Admin/LegalInfoAdmin'));
+
 const ContactPage = () => <div>Contact Page (Coming Soon)</div>;
-const NotFoundPage = () => (
-  <div style={{ textAlign: 'center', padding: '50px' }}>
-    <h2>Страница не найдена</h2>
-    <p>Запрашиваемая страница не существует.</p>
-  </div>
-);
 
 const AppRoutes = () => {
   const { isAuthenticated } = useSelector(state => state.auth);
@@ -38,127 +41,144 @@ const AppRoutes = () => {
     <RouteRefresh>
       <Suspense fallback={<Loading fullScreen text="Загрузка страницы..." />}>
         <Routes>
-          {/* Public routes */}
+
+          {/* ═══ Публичные страницы ═══ */}
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductCatalog />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/articles" element={<ArticlesList />} />
           <Route path="/articles/:slug" element={<ArticleDetail />} />
           <Route path="/about" element={<AboutPage />} />
-          
-          {/* Article management routes - require admin or manager role */}
-          <Route 
-            path="/articles/create" 
-            element={
-              <ProtectedRoute requiredRole={['manager', 'admin']}>
-                <ArticleForm />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/articles/:slug/edit" 
-            element={
-              <ProtectedRoute requiredRole={['manager', 'admin']}>
-                <ArticleForm />
-              </ProtectedRoute>
-            } 
-          />
           <Route path="/contact" element={<ContactPage />} />
-          
-          {/* Authentication routes - redirect if already logged in */}
-          <Route 
-            path="/login" 
+
+          {/* ═══ Юридические документы (публичные) ═══ */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/offer" element={<PublicOffer />} />
+          <Route path="/personal-data-consent" element={<PersonalDataConsent />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+
+          {/* ═══ Управление статьями ═══ */}
+          <Route
+            path="/articles/create"
             element={
-              isAuthenticated ? <Navigate to="/" replace /> : <LoginForm />
-            } 
+              <ProtectedRoute requiredRole={['manager', 'admin']}>
+                <ArticleForm />
+              </ProtectedRoute>
+            }
           />
-          <Route 
-            path="/register" 
+          <Route
+            path="/articles/:slug/edit"
             element={
-              isAuthenticated ? <Navigate to="/" replace /> : <RegisterForm />
-            } 
+              <ProtectedRoute requiredRole={['manager', 'admin']}>
+                <ArticleForm />
+              </ProtectedRoute>
+            }
           />
-          
-          {/* Protected routes - require authentication */}
-          <Route 
-            path="/cart" 
+
+          {/* ═══ Авторизация ═══ */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated
+                ? <Navigate to="/products" replace />
+                : <LoginForm />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated
+                ? <Navigate to="/products" replace />
+                : <RegisterForm />
+            }
+          />
+
+          {/* ═══ Защищённые (нужна авторизация) ═══ */}
+          <Route
+            path="/cart"
             element={
               <ProtectedRoute>
                 <ShoppingCart />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/profile" 
+          <Route
+            path="/profile"
             element={
               <ProtectedRoute>
                 <UserProfile />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/checkout" 
+          <Route
+            path="/checkout"
             element={
               <ProtectedRoute>
                 <Checkout />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/payment-result" 
+          <Route
+            path="/payment-result"
             element={
               <ProtectedRoute>
                 <PaymentSuccess />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          {/* Admin routes - require admin role */}
-          <Route 
-            path="/admin/*" 
+
+          {/* ═══ Админка ═══ */}
+          <Route
+            path="/admin/legal-info"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <LegalInfoAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/*"
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminPanel />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          {/* Manager routes - require manager or admin role */}
-          <Route 
-            path="/manage/*" 
+
+          {/* ═══ Менеджер ═══ */}
+          <Route
+            path="/manage/*"
             element={
               <ProtectedRoute requiredRole={['manager', 'admin']}>
                 <AdminPanel />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          {/* Product Management - separate interface for managers and admins */}
-          <Route 
-            path="/products/manage" 
+          <Route
+            path="/products/manage"
             element={
               <ProtectedRoute requiredRole={['manager', 'admin']}>
                 <ProductManagement />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          {/* Order Management - for managers and admins */}
-          <Route 
-            path="/orders/manage" 
+          <Route
+            path="/orders/manage"
             element={
               <ProtectedRoute requiredRole={['manager', 'admin']}>
                 <OrderManagement />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          {/* Redirect old URLs */}
+
+          {/* ═══ Редиректы ═══ */}
           <Route path="/catalog" element={<Navigate to="/products" replace />} />
           <Route path="/shop" element={<Navigate to="/products" replace />} />
-          
-          {/* 404 page */}
+
+          {/* ═══ 404 ═══ */}
           <Route path="*" element={<NotFoundPage />} />
+
         </Routes>
       </Suspense>
     </RouteRefresh>

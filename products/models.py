@@ -82,14 +82,11 @@ def get_default_nutritional_info():
         },
         "allergens": [],  # Список аллергенов: ["глютен", "молоко", "яйца", "орехи", "соя", "рыба", "моллюски"]
         "dietary_info": {
-            "is_vegetarian": False,
-            "is_vegan": False,
             "is_gluten_free": False,
             "is_lactose_free": False,
+            "is_lactose_free": False,
+            "is_egg_free": False,
             "is_sugar_free": False,
-            "is_organic": False,
-            "is_kosher": False,
-            "is_halal": False
         },
         "storage_info": {
             "temperature": "комнатная температура",  # "холодильник", "морозилка", "комнатная температура"
@@ -121,6 +118,8 @@ class Product(models.Model):
     # Существующие поля
     is_gluten_free = models.BooleanField(default=False)
     is_low_protein = models.BooleanField(default=False)
+    is_lactose_free = models.BooleanField(default=False)
+    is_egg_free = models.BooleanField(default=False)
     nutritional_info = models.JSONField(default=get_default_nutritional_info)
     stock_quantity = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)

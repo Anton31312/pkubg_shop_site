@@ -184,6 +184,12 @@ const ProductList = ({ products, onEdit, onDelete, onImageUpload, onToggleActive
                           {product.is_low_protein && (
                             <span className="badge low-protein">Низкобелковый</span>
                           )}
+                          {product.is_lactose_free && (
+                            <span className="badge lactose-free">Без лактозы</span>
+                          )}
+                          {product.is_egg_free && (
+                            <span className="badge egg-free">Без яиц</span>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -334,6 +340,12 @@ const ProductList = ({ products, onEdit, onDelete, onImageUpload, onToggleActive
                     )}
                     {product.is_low_protein && (
                       <span className="badge low-protein">Низкобелковый</span>
+                    )}
+                    {product.is_lactose_free && (
+                      <span className="badge lactose-free">Без лактозы</span>
+                    )}
+                    {product.is_egg_free && (
+                      <span className="badge egg-free">Без яиц</span>
                     )}
                   </div>
                   

@@ -1,0 +1,80 @@
+.notfound-container {
+
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg,#f7f7f7,#fff8e8);
+
+  text-align: center;
+  padding: 40px;
+}
+
+.notfound-container h1 {
+
+  font-size: 120px;
+  margin: 0;
+  color: #cce5ff;
+}
+
+.notfound-container h2 {
+
+  font-size: 32px;
+  margin: 10px 0;
+}
+
+.notfound-container p {
+
+  max-width: 400px;
+  margin-bottom: 30px;
+  color: #555;
+}
+
+.notfound-container .buttons {
+
+  display: flex;
+  gap: 20px;
+}
+
+.notfound-container .btn {
+
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+
+  background: #cce5ff;
+  color: #0a140b;
+
+  font-weight: 600;
+
+  transition: 0.3s;
+}
+
+.notfound-container .btn:hover {
+
+  background: #cce5ff;
+}
+
+.notfound-container .btn.secondary {
+
+  background: #2c5530;
+  color: #fff;
+
+}
+
+.notfound-container .cookie {
+
+  font-size: 80px;
+
+  animation: cookieRun 3s infinite;
+}
+
+@keyframes cookieRun {
+
+  0% { transform: translateX(-50px) rotate(0); }
+  50% { transform: translateX(50px) rotate(180deg); }
+  100% { transform: translateX(-50px) rotate(360deg); }
+
+}

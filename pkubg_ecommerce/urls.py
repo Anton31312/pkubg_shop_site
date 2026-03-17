@@ -69,6 +69,7 @@ urlpatterns = [
     path('api/address-suggestions/', get_address_suggestions, name='address_suggestions'),
     path('api/csp-report/', csp_report, name='csp_report'),
     path('monitoring/', include('monitoring.urls')),
+    path('api/legal-info/', include('legal.urls')),
 ]
 
 if settings.DEBUG:

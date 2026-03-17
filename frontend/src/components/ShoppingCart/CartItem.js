@@ -80,6 +80,12 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, loading }) => {
           {item.product.is_low_protein && (
             <span className="feature-badge low-protein">Низкобелковый</span>
           )}
+          {item.product.is_lactose_free && (
+            <span className="feature-badge lactose-free">Без лактозы</span>
+          )}
+          {item.product.is_egg_free && (
+            <span className="feature-badge egg-free">Без яиц</span>
+          )}
         </div>
 
         <div className="item-price">

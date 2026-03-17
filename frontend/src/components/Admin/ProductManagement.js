@@ -19,6 +19,8 @@ const ProductManagement = () => {
     category: '',
     is_gluten_free: false,
     is_low_protein: false,
+    is_lactose_free: false,
+    is_egg_free: false,
     stock_quantity: 0,
     is_active: true
   });
@@ -188,6 +190,8 @@ const ProductManagement = () => {
       category: product.category_detail ? product.category_detail.id : product.category,
       is_gluten_free: product.is_gluten_free,
       is_low_protein: product.is_low_protein,
+      is_lactose_free: product.is_lactose_free,
+      is_egg_free: product.is_egg_free,
       stock_quantity: product.stock_quantity,
       is_active: product.is_active
     });
@@ -218,6 +222,8 @@ const ProductManagement = () => {
       category: '',
       is_gluten_free: false,
       is_low_protein: false,
+      is_lactose_free: false,
+      is_egg_free: false,
       stock_quantity: 0,
       is_active: true
     });
@@ -470,6 +476,28 @@ const ProductManagement = () => {
                 <label>
                   <input
                     type="checkbox"
+                    name="is_lactose_free"
+                    checked={formData.is_lactose_free}
+                    onChange={handleInputChange}
+                  />
+                  Без лактозы
+                </label>
+              </div>
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="is_egg_free"
+                    checked={formData.is_egg_free}
+                    onChange={handleInputChange}
+                  />
+                  Без яиц
+                </label>
+              </div>
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
                     name="is_active"
                     checked={formData.is_active}
                     onChange={handleInputChange}
@@ -555,6 +583,12 @@ const ProductManagement = () => {
                         )}
                         {product.is_low_protein && (
                           <span className="badge low-protein">Низкобелковый</span>
+                        )}
+                        {product.is_lactose_free && (
+                          <span className="badge lactose-free">Без лактозы</span>
+                        )}
+                        {product.is_egg_free && (
+                          <span className="badge egg-free">Без яиц</span>
                         )}
                       </div>
                     </div>

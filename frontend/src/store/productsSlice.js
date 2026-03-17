@@ -80,6 +80,8 @@ const productsSlice = createSlice({
       manufacturers: [],
       isGlutenFree: false,
       isLowProtein: false,
+      isLactoseFree: false,
+      isEggFree: false,
       minPrice: '',
       maxPrice: '',
     },
@@ -102,6 +104,8 @@ const productsSlice = createSlice({
         manufacturers: [],
         isGlutenFree: false,
         isLowProtein: false,
+        isLactoseFree: false,
+        isEggFree: false,
         minPrice: '',
         maxPrice: '',
       };

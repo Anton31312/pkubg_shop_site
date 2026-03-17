@@ -1,77 +1,107 @@
+/* ═══════════════════════════════════════════
+   Админ-панель: КОМПАКТНАЯ, не перекрывает
+   ═══════════════════════════════════════════ */
+
+/* ✅ Маленький элемент в углу, НЕ на всю карточку */
 .admin-product-actions {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  border-radius: 12px;
+  top: 8px;
+  right: 8px;
   z-index: 10;
+  /* ✅ НЕТ top:0 left:0 right:0 bottom:0 */
+  /* ✅ НЕТ background на всю карточку */
 }
 
-.product-card:hover .admin-product-actions {
-  opacity: 1;
-}
-
-.actions-overlay {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 12px;
-}
-
-.actions-header {
-  display: flex;
-  justify-content: flex-end;
-}
-
+/* Бейдж "А" или "М" — всегда виден */
 .admin-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: 50%;
   font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
 }
 
-.quick-actions {
+.admin-product-actions:hover .admin-badge {
+  transform: scale(1.1);
+}
+
+/* ═══ Выпадающее меню — появляется при ховере ═══ */
+.admin-actions-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  min-width: 180px;
+
+  /* ✅ Скрыто по умолчанию */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+}
+
+/* ✅ Показывается ТОЛЬКО при ховере на admin-product-actions */
+.admin-product-actions:hover .admin-actions-dropdown {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Предотвращаем закрытие при переходе к дропдауну */
+.admin-actions-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 0;
+  width: 40px;
+  height: 8px;
+}
+
+/* ═══ Кнопки действий ═══ */
+.admin-actions-buttons {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .action-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 50%;
-  background: white;
+  background: #f0f0f0;
   color: #333;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .action-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .action-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none !important;
 }
 
 .edit-btn:hover:not(:disabled) {
@@ -99,90 +129,64 @@
   color: white;
 }
 
-.product-status {
+/* ═══ Статус товара (компактный) ═══ */
+.admin-product-status {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.status-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 4px 8px;
-  border-radius: 6px;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
   font-size: 0.75rem;
-}
-
-.status-label {
   color: #666;
-  font-weight: 500;
 }
 
-.status-value {
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.active {
+  background: #28a745;
+}
+
+.status-dot.inactive {
+  background: #dc3545;
+}
+
+.status-stock {
   font-weight: 600;
 }
 
-.status-value.active {
-  color: #28a745;
-}
-
-.status-value.inactive {
-  color: #dc3545;
-}
-
-.status-value.in-stock {
-  color: #28a745;
-}
-
-.status-value.low-stock {
-  color: #ffc107;
-}
-
-.status-value.out-of-stock {
-  color: #dc3545;
-}
-
-/* Responsive Design */
+/* ═══ Адаптив ═══ */
 @media (max-width: 768px) {
-  .actions-overlay {
-    padding: 8px;
-  }
-  
-  .quick-actions {
-    gap: 6px;
-  }
-  
-  .action-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-  }
-  
   .admin-badge {
+    width: 24px;
+    height: 24px;
     font-size: 0.6rem;
-    padding: 3px 6px;
   }
-  
-  .status-item {
-    font-size: 0.7rem;
-    padding: 3px 6px;
-  }
-}
 
-@media (max-width: 480px) {
-  .quick-actions {
-    gap: 4px;
-  }
-  
   .action-btn {
     width: 32px;
     height: 32px;
     font-size: 0.9rem;
   }
-  
-  .product-status {
-    gap: 2px;
+}
+
+/* ═══ Touch-устройства: клик вместо ховера ═══ */
+@media (hover: none) and (pointer: coarse) {
+  /* На мобильных первый тап открывает меню,
+     второй — закрывает или выполняет действие */
+  .admin-product-actions:focus-within .admin-actions-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .admin-badge {
+    /* Делаем фокусируемым для touch */
+    -webkit-tap-highlight-color: transparent;
   }
 }

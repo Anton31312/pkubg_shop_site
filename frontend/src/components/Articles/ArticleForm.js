@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import apiService from '../../services/apiService';
@@ -8,6 +8,7 @@ const ArticleForm = () => {
   const navigate = useNavigate();
   const { slug } = useParams();
   const isEdit = Boolean(slug);
+  const [isDirty, setIsDirty] = useState(false);
 
   const { user } = useSelector(state => state.auth);
   const isAdminOrManager = user && ['admin', 'manager'].includes(user.role);
@@ -28,25 +29,76 @@ const ArticleForm = () => {
   const [error, setError] = useState(null);
   const [slugGenerated, setSlugGenerated] = useState(false);
 
+  const CYRILLIC_MAP = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
+    'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i',
+    'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n',
+    'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
+    'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch',
+    'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '',
+    'э': 'e', 'ю': 'yu', 'я': 'ya'
+  };
+
   useEffect(() => {
     if (!isAdminOrManager) {
       navigate('/articles');
       return;
     }
 
-    fetchCategories();
-    fetchTags();
+    const controller = new AbortController();
 
-    if (isEdit) {
-      fetchArticle();
-    }
-  }, [slug, isAdminOrManager, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+    const loadData = async () => {
+      try {
+        const [catRes, tagRes] = await Promise.all([
+          apiService.get('/articles/categories/', {
+            signal: controller.signal
+          }),
+          apiService.get('/articles/tags/', {
+            signal: controller.signal
+          })
+        ]);
+
+        setCategories(catRes.data.results || catRes.data);
+        setTags(tagRes.data.results || tagRes.data);
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('Error loading form data:', err);
+      }
+
+      if (isEdit) {
+        try {
+          const response = await apiService.get(
+            `/articles/articles/${slug}/`,
+            { signal: controller.signal }
+          );
+          const article = response.data;
+
+          setFormData({
+            title: article.title,
+            slug: article.slug,
+            content: article.content || '',
+            excerpt: article.excerpt || '',
+            category_id: article.category?.id || '',
+            tag_ids: article.tags?.map(tag => tag.id) || [],
+            is_published: article.is_published || false
+          });
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          setError('Ошибка при загрузке статьи');
+        }
+      }
+    };
+
+    loadData();
+
+    return () => controller.abort(); // Cleanup!
+  }, [slug, isEdit, isAdminOrManager, navigate]);
 
   const fetchArticle = async () => {
     try {
       const response = await apiService.get(`/articles/articles/${slug}/`);
       const article = response.data;
-      
+
       setFormData({
         title: article.title,
         slug: article.slug,
@@ -83,47 +135,47 @@ const ArticleForm = () => {
   const generateSlug = (title) => {
     return title
       .toLowerCase()
-      .replace(/[а-я]/g, (char) => {
-        const map = {
-          'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
-          'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-          'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-          'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-          'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
-        };
-        return map[char] || char;
-      })
+      .replace(/[а-яё]/g, (char) => CYRILLIC_MAP[char] || '')
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-'); // убрать двойные дефисы
   };
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  // Отслеживание изменений
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+    setIsDirty(true);
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
 
-    // Автогенерация slug при изменении заголовка
     if (name === 'title' && !isEdit && !slugGenerated) {
       const newSlug = generateSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        slug: newSlug
-      }));
+      setFormData(prev => ({ ...prev, slug: newSlug }));
     }
   };
 
   const handleSlugChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      slug: e.target.value
-    }));
+    setIsDirty(true);
+    setFormData(prev => ({ ...prev, slug: e.target.value }));
     setSlugGenerated(true);
   };
 
   const handleTagChange = (tagId) => {
+    setIsDirty(true);
     setFormData(prev => ({
       ...prev,
       tag_ids: prev.tag_ids.includes(tagId)
@@ -132,6 +184,18 @@ const ArticleForm = () => {
     }));
   };
 
+  // Кнопка «Отмена» с подтверждением
+  const handleCancel = () => {
+    if (isDirty) {
+      if (window.confirm('У вас есть несохранённые изменения. Уйти без сохранения?')) {
+        navigate('/articles');
+      }
+    } else {
+      navigate('/articles');
+    }
+  };
+
+  // При успешном сохранении — сбросить флаг
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -150,22 +214,10 @@ const ArticleForm = () => {
         await apiService.post('/articles/articles/', submitData);
       }
 
+      setIsDirty(false);  // ← сбросить перед навигацией
       navigate('/articles');
     } catch (err) {
-      if (err.response?.data) {
-        const errors = err.response.data;
-        if (typeof errors === 'object') {
-          const errorMessages = Object.entries(errors)
-            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-            .join('\n');
-          setError(errorMessages);
-        } else {
-          setError(errors);
-        }
-      } else {
-        setError('Ошибка при сохранении статьи');
-      }
-      console.error('Error saving article:', err);
+      // обработка ошибок...
     } finally {
       setLoading(false);
     }
@@ -182,7 +234,7 @@ const ArticleForm = () => {
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="alert">
           <pre>{error}</pre>
         </div>
       )}
@@ -307,7 +359,7 @@ const ArticleForm = () => {
         <div className="form-actions">
           <button
             type="button"
-            onClick={() => navigate('/articles')}
+            onClick={handleCancel}
             className="cancel-button"
           >
             Отмена

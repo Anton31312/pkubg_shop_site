@@ -16,6 +16,8 @@ const ProductManagement = () => {
     category: '',
     is_gluten_free: false,
     is_low_protein: false,
+    is_lactose_free: false,
+    is_egg_free: false,
     stock_quantity: '',
     nutritional_info: {
       per_100g: {
@@ -30,12 +32,10 @@ const ProductManagement = () => {
       },
       allergens: [],
       dietary_info: {
-        is_vegetarian: false,
-        is_vegan: false,
         is_gluten_free: false,
         is_lactose_free: false,
+        is_egg_free: false,
         is_sugar_free: false,
-        is_organic: false
       }
     },
     is_active: true
@@ -115,12 +115,10 @@ const ProductManagement = () => {
       },
       allergens: [],
       dietary_info: {
-        is_vegetarian: false,
-        is_vegan: false,
         is_gluten_free: false,
         is_lactose_free: false,
+        is_egg_free: false,
         is_sugar_free: false,
-        is_organic: false
       }
     };
 
@@ -146,6 +144,8 @@ const ProductManagement = () => {
       category: product.category.id,
       is_gluten_free: product.is_gluten_free,
       is_low_protein: product.is_low_protein,
+      is_lactose_free: product.is_lactose_free,
+      is_egg_free: product.is_egg_free,
       stock_quantity: product.stock_quantity,
       nutritional_info: mergedNutritionalInfo,
       is_active: product.is_active
@@ -172,6 +172,8 @@ const ProductManagement = () => {
       category: '',
       is_gluten_free: false,
       is_low_protein: false,
+      is_lactose_free: false,
+      is_egg_free: false,
       stock_quantity: '',
       nutritional_info: {
         per_100g: {
@@ -186,12 +188,10 @@ const ProductManagement = () => {
         },
         allergens: [],
         dietary_info: {
-          is_vegetarian: false,
-          is_vegan: false,
           is_gluten_free: false,
           is_lactose_free: false,
+          is_egg_free: false,
           is_sugar_free: false,
-          is_organic: false
         }
       },
       is_active: true
@@ -321,6 +321,28 @@ const ProductManagement = () => {
                     Низкобелковый продукт
                   </label>
                 </div>
+                <div className="form-group checkbox-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="is_lactose_free"
+                      checked={formData.is_lactose_free}
+                      onChange={handleInputChange}
+                    />
+                    Без лактозы
+                  </label>
+                </div>
+                <div className="form-group checkbox-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="is_egg_free"
+                      checked={formData.is_egg_free}
+                      onChange={handleInputChange}
+                    />
+                    Без яиц
+                  </label>
+                </div>
               </div>
 
               <div className="form-group checkbox-group">
@@ -369,6 +391,8 @@ const ProductManagement = () => {
                     <div className="product-badges">
                       {product.is_gluten_free && <span className="badge gluten-free">Без глютена</span>}
                       {product.is_low_protein && <span className="badge low-protein">Низкобелковый</span>}
+                      {product.is_lactose_free && <span className="badge lactose-free">Без лактозы</span>}
+                      {product.is_egg_free && <span className="badge egg-free">Без яиц</span>}
                     </div>
                   </div>
                 </td>

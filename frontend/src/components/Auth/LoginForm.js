@@ -19,7 +19,7 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
+      const from = location.state?.from?.pathname || '/products';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);

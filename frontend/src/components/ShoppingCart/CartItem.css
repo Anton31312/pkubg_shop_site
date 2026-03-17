@@ -77,11 +77,23 @@
 }
 
 .feature-badge.gluten-free {
-  background-color: #28a745;
+  background: #d4edda;
+  color: #155724;
 }
 
 .feature-badge.low-protein {
-  background-color: #17a2b8;
+  background: #cce5ff;
+  color: #004085;
+}
+
+.badge.lactose-free {
+  background: #e8daef;
+  color: #4a235a;
+}
+
+.badge.egg-free {
+  background: #fdebd0;
+  color: #7e5109;
 }
 
 .item-price {
@@ -243,8 +255,8 @@
 }
 
 .stock-badge.in-stock {
-  background: #d4edda;
-  color: #155724;
+  background: #aee4b4;
+  color: #145a24;
 }
 
 .stock-badge.limited-stock {

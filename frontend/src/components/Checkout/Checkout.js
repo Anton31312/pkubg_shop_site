@@ -477,6 +477,17 @@ const Checkout = () => {
                 </div>
               </div>
 
+              <div className="form-section">
+                <h3>Доставка и самовывоз</h3>
+                <div className="payment-method-info">
+                  <div className="payment-icon">🚛</div>
+                  <div className="payment-details">
+                    <strong>Доставка осуществляется логистической компанией СДЭК</strong>
+                    <p>Если вы желаете забрать свой заказ самостоятельно, скажите об этом менеджеру во время звонка</p>
+                  </div>
+                </div>
+              </div>
+
               <button 
                 type="submit" 
                 className="btn btn-primary btn-large"
@@ -512,19 +523,14 @@ const Checkout = () => {
                 </div>
                 <div className="total-line">
                   <span>Доставка:</span>
-                  <span className="delivery-note">Бесплатно</span>
+                  <span className="delivery-note">Менеджер сообщит стоимость</span>
                 </div>
                 <div className="total-line total-final">
                   <span>Итого:</span>
                   <span>{formatPrice(total)}</span>
                 </div>
               </div>
-
-              {total >= 2000 && (
-                <div className="free-delivery-badge">
-                  ✅ Бесплатная доставка
-                </div>
-              )}
+              
             </div>
           </div>
         </div>
@@ -534,3 +540,10 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
+
+// {total >= 2000 && (
+//                 <div className="free-delivery-badge">
+//                   ✅ Бесплатная доставка
+//                 </div>
+//               )}

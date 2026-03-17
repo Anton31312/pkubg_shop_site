@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import apiService from '../../services/apiService';
@@ -10,17 +11,37 @@ const ArticleDetail = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const { user } = useSelector(state => state.auth);
   const isAdminOrManager = user && ['admin', 'manager'].includes(user.role);
+  const API_BASE = '/articles/articles';
 
-  useEffect(() => {
-    fetchArticle();
-  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: article.title,
+          text: article.excerpt,
+          url: window.location.href
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        // Лучше использовать toast-уведомление вместо alert
+        alert('Ссылка скопирована в буфер обмена');
+      }
+    } catch (err) {
+      // Пользователь отменил шаринг — это нормально, не ошибка
+      if (err.name !== 'AbortError') {
+        console.error('Share failed:', err);
+      }
+    }
+  };
 
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await apiService.get(`/articles/articles/${slug}/`);
       setArticle(response.data);
     } catch (err) {
@@ -29,37 +50,52 @@ const ArticleDetail = () => {
       } else {
         setError('Ошибка при загрузке статьи');
       }
-      console.error('Error fetching article:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    fetchArticle();
+  }, [fetchArticle]);
+
+  useEffect(() => {
+    if (article) {
+      document.title = `${article.title} — PKUBG`;
+    }
+    return () => {
+      document.title = 'PKUBG — интернет-магазин';
+    };
+  }, [article]);
 
   const handlePublishToggle = async () => {
+    if (actionLoading) return;
+    setActionLoading('publish');
     try {
       const endpoint = article.is_published ? 'unpublish' : 'publish';
-      await apiService.post(`/articles/api/articles/${article.slug}/${endpoint}/`);
-      setArticle(prev => ({
-        ...prev,
-        is_published: !prev.is_published
-      }));
+      await apiService.post(`/articles/articles/${article.slug}/${endpoint}/`);
+      setArticle(prev => ({ ...prev, is_published: !prev.is_published }));
     } catch (err) {
       console.error('Error toggling publish status:', err);
       alert('Ошибка при изменении статуса публикации');
+    } finally {
+      setActionLoading(null);
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту статью?')) {
-      return;
-    }
 
+  const handleDelete = async () => {
+    if (actionLoading) return;
+    if (!window.confirm('Вы уверены, что хотите удалить эту статью?')) return;
+
+    setActionLoading('delete');
     try {
-      await apiService.delete(`/articles/api/articles/${article.slug}/`);
+      await apiService.delete(`/articles/articles/${article.slug}/`);
       navigate('/articles');
     } catch (err) {
       console.error('Error deleting article:', err);
       alert('Ошибка при удалении статьи');
+      setActionLoading(null);
     }
   };
 
@@ -71,6 +107,25 @@ const ArticleDetail = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const SANITIZE_CONFIG = {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'hr',
+      'ul', 'ol', 'li',
+      'strong', 'em', 'b', 'i', 'u', 's',
+      'a', 'img',
+      'blockquote', 'pre', 'code',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span', 'figure', 'figcaption'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'target', 'rel', 'src', 'alt',
+      'title', 'class', 'width', 'height'
+    ],
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['target'],
   };
 
   if (loading) {
@@ -104,28 +159,33 @@ const ArticleDetail = () => {
         <Link to="/articles" className="back-link">
           ← Все статьи
         </Link>
-        
+
         {isAdminOrManager && (
           <div className="article-admin-actions">
-            <Link 
+            <Link
               to={`/articles/${article.slug}/edit`}
               className="edit-button"
             >
               Редактировать
             </Link>
-            
+
             <button
               onClick={handlePublishToggle}
               className={`publish-button ${article.is_published ? 'unpublish' : 'publish'}`}
+              disabled={actionLoading === 'publish'}
             >
-              {article.is_published ? 'Снять с публикации' : 'Опубликовать'}
+              {actionLoading === 'publish'
+                ? 'Обработка...'
+                : article.is_published ? 'Снять с публикации' : 'Опубликовать'}
             </button>
-            
+
             <button
               onClick={handleDelete}
               className="delete-button"
+              aria-label={`Удалить статью "${article.title}"`}
+              disabled={actionLoading === 'delete'}
             >
-              Удалить
+              {actionLoading === 'delete' ? 'Удаление...' : 'Удалить'}
             </button>
           </div>
         )}
@@ -139,7 +199,7 @@ const ArticleDetail = () => {
         )}
 
         <header className="article-header">
-          <div className="article-meta">
+          <div className="article-detail-meta">
             {article.category && (
               <span className="article-category">
                 {article.category.name}
@@ -184,30 +244,15 @@ const ArticleDetail = () => {
           <p><strong>{article.excerpt}</strong></p>
         </div>
 
-        <div 
-          className="article-content"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+        <div className="article-body"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
         />
 
-        <footer className="article-footer">
+        <footer className="article-detail-footer">
           <div className="article-share">
             <h4>Поделиться статьей:</h4>
             <div className="share-buttons">
-              <button
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: article.title,
-                      text: article.excerpt,
-                      url: window.location.href
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Ссылка скопирована в буфер обмена');
-                  }
-                }}
-                className="share-button"
-              >
+              <button onClick={handleShare} className="share-button">
                 Поделиться
               </button>
             </div>

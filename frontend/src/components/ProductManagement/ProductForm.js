@@ -15,6 +15,8 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
     storage_conditions: '',
     is_gluten_free: false,
     is_low_protein: false,
+    is_lactose_free: false,
+    is_egg_free: false,
     stock_quantity: '',
     is_active: true,
     nutritional_info: {
@@ -30,12 +32,9 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       },
       allergens: [],
       dietary_info: {
-        is_vegetarian: false,
-        is_vegan: false,
-        is_gluten_free: false,
         is_lactose_free: false,
+        is_egg_free: false,
         is_sugar_free: false,
-        is_organic: false
       }
     }
   });
@@ -63,26 +62,24 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         },
         allergens: [],
         dietary_info: {
-          is_vegetarian: false,
-          is_vegan: false,
           is_gluten_free: false,
           is_lactose_free: false,
+          is_egg_free: false,
           is_sugar_free: false,
-          is_organic: false
         }
       };
 
       // Мержим данные из продукта с дефолтными значениями
       const mergedNutritionalInfo = product.nutritional_info ? {
         per_100g: {
-          calories: Number(product.nutritional_info.per_100g?.calories) || 0,
-          proteins: Number(product.nutritional_info.per_100g?.proteins) || 0.0,
-          fats: Number(product.nutritional_info.per_100g?.fats) || 0.0,
-          carbohydrates: Number(product.nutritional_info.per_100g?.carbohydrates) || 0.0,
-          fiber: Number(product.nutritional_info.per_100g?.fiber) || 0.0,
-          sugar: Number(product.nutritional_info.per_100g?.sugar) || 0.0,
-          salt: Number(product.nutritional_info.per_100g?.salt) || 0.0,
-          sodium: Number(product.nutritional_info.per_100g?.sodium) || 0.0
+          calories: Number(product.nutritional_info?.per_100g?.calories) || 0,
+          proteins: Number(product.nutritional_info?.per_100g?.proteins) || 0,
+          fats: Number(product.nutritional_info?.per_100g?.fats) || 0,
+          carbohydrates: Number(product.nutritional_info?.per_100g?.carbohydrates) || 0,
+          fiber: Number(product.nutritional_info?.per_100g?.fiber) || 0,
+          sugar: Number(product.nutritional_info?.per_100g?.sugar) || 0,
+          salt: Number(product.nutritional_info?.per_100g?.salt) || 0,
+          sodium: Number(product.nutritional_info?.per_100g?.sodium) || 0
         },
         allergens: product.nutritional_info.allergens || [],
         dietary_info: {
@@ -98,12 +95,14 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         slug: product.slug || '',
         description: product.description || '',
         price: product.price || '',
-        category: product.category?.id || '',
+        category: product.category?.id || product.category || '',
         manufacturer: product.manufacturer || '',
         composition: product.composition || '',
         storage_conditions: product.storage_conditions || '',
         is_gluten_free: product.is_gluten_free || false,
         is_low_protein: product.is_low_protein || false,
+        is_lactose_free: product.is_lactose_free || false,
+        is_egg_free: product.is_egg_free || false,
         stock_quantity: product.stock_quantity || '',
         is_active: product.is_active !== undefined ? product.is_active : true,
         nutritional_info: mergedNutritionalInfo
@@ -137,7 +136,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       nutritional_info: {
         ...prev.nutritional_info,
         [section]: {
-          ...prev.nutritional_info[section],
+          ...(prev.nutritional_info?.[section] || {}),
           [field]: value
         }
       }
@@ -150,7 +149,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       nutritional_info: {
         ...prev.nutritional_info,
         allergens: checked
-          ? [...prev.nutritional_info.allergens, allergen]
+          ? [...new Set([...prev.nutritional_info.allergens, allergen])]
           : prev.nutritional_info.allergens.filter(a => a !== allergen)
       }
     }));
@@ -173,7 +172,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
   };
 
   const allergenOptions = [
-    'глютен', 'молоко', 'яйца', 'орехи', 'соя', 'рыба', 'моллюски', 'кунжут'
+    'глютен', 'молоко', 'яйца', 'орехи', 'соя'
   ];
 
   return (
@@ -361,6 +360,30 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
               <label className="checkbox-label">
                 <input
                   type="checkbox"
+                  name="is_lactose_free"
+                  checked={formData.is_lactose_free}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+                <span className="checkmark"></span>
+                Без лактозы
+              </label>
+
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="is_egg_free"
+                  checked={formData.is_egg_free}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+                <span className="checkmark"></span>
+                Без яиц
+              </label>
+
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
                   name="is_active"
                   checked={formData.is_active}
                   onChange={handleInputChange}
@@ -393,7 +416,10 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                     <input
                       type="number"
                       value={formData.nutritional_info.per_100g.calories}
-                      onChange={(e) => handleNutritionChange('per_100g', 'calories', Number(e.target.value))}
+                      onChange={(e) => {
+                          const value = e.target.value === '' ? '' : Number(e.target.value);
+                          handleNutritionChange('per_100g', 'calories', value);
+                        }}
                       min="0"
                       disabled={loading}
                     />
@@ -404,7 +430,10 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       type="number"
                       step="0.1"
                       value={formData.nutritional_info.per_100g.proteins}
-                      onChange={(e) => handleNutritionChange('per_100g', 'proteins', Number(e.target.value))}
+                      onChange={(e) => {
+                          const value = e.target.value === '' ? '' : Number(e.target.value);
+                          handleNutritionChange('per_100g', 'proteins', value);
+                        }}
                       min="0"
                       disabled={loading}
                     />
@@ -415,7 +444,10 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       type="number"
                       step="0.1"
                       value={formData.nutritional_info.per_100g.fats}
-                      onChange={(e) => handleNutritionChange('per_100g', 'fats', Number(e.target.value))}
+                      onChange={(e) => {
+                          const value = e.target.value === '' ? '' : Number(e.target.value);
+                          handleNutritionChange('per_100g', 'fats', value);
+                        }}
                       min="0"
                       disabled={loading}
                     />
@@ -426,7 +458,10 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       type="number"
                       step="0.1"
                       value={formData.nutritional_info.per_100g.carbohydrates}
-                      onChange={(e) => handleNutritionChange('per_100g', 'carbohydrates', Number(e.target.value))}
+                      onChange={(e) => {
+                          const value = e.target.value === '' ? '' : Number(e.target.value);
+                          handleNutritionChange('per_100g', 'carbohydrates', value);
+                        }}
                       min="0"
                       disabled={loading}
                     />
@@ -449,39 +484,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                   ))}
                 </div>
 
-                <h4>Диетические характеристики</h4>
-                <div className="dietary-grid">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={formData.nutritional_info.dietary_info.is_vegetarian}
-                      onChange={(e) => handleNutritionChange('dietary_info', 'is_vegetarian', e.target.checked)}
-                      disabled={loading}
-                    />
-                    <span className="checkmark"></span>
-                    Vegetarian
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={formData.nutritional_info.dietary_info.is_vegan}
-                      onChange={(e) => handleNutritionChange('dietary_info', 'is_vegan', e.target.checked)}
-                      disabled={loading}
-                    />
-                    <span className="checkmark"></span>
-                    Vegan
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={formData.nutritional_info.dietary_info.is_organic}
-                      onChange={(e) => handleNutritionChange('dietary_info', 'is_organic', e.target.checked)}
-                      disabled={loading}
-                    />
-                    <span className="checkmark"></span>
-                    Organic
-                  </label>
-                </div>
+                
               </div>
             )}
           </div>

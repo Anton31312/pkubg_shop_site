@@ -15,6 +15,8 @@ const ProductQuickAdd = ({ onClose, onSuccess }) => {
     stock_quantity: '',
     is_gluten_free: false,
     is_low_protein: false,
+    is_lactose_free: false,
+    is_egg_free: false,
     is_active: true
   });
 
@@ -235,6 +237,30 @@ const ProductQuickAdd = ({ onClose, onSuccess }) => {
               />
               <span className="checkmark"></span>
               Низкобелковый продукт
+            </label>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="is_lactose_free"
+                checked={formData.is_lactose_free}
+                onChange={handleInputChange}
+                disabled={loading}
+              />
+              <span className="checkmark"></span>
+              Без лактозы
+            </label>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="is_egg_free"
+                checked={formData.is_egg_free}
+                onChange={handleInputChange}
+                disabled={loading}
+              />
+              <span className="checkmark"></span>
+              Без яиц
             </label>
 
             <label className="checkbox-label">

@@ -13,9 +13,15 @@ const ProductCatalog = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { items, categories, manufacturers, filters, loading, error } = useSelector(state => state.products);
-  const { isMobile } = useResponsive();
-  const [showFilters, setShowFilters] = useState(!isMobile);
+  const { isMobile, isDesktop } = useResponsive();   
+  const [showFilters, setShowFilters] = useState(false);  
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Показывать фильтры автоматически только на десктопе
+  useEffect(() => {
+    setShowFilters(isDesktop);
+  }, [isDesktop]);
+
 
   // Используем хук для автоматического обновления при смене роута
   const refreshCallback = useCallback(() => {
@@ -45,6 +51,8 @@ const ProductCatalog = () => {
       manufacturers: manufacturersParam ? manufacturersParam.split(',') : [],
       isGlutenFree: searchParams.get('gluten_free') === 'true' || dietaryType === 'gluten_free',
       isLowProtein: searchParams.get('low_protein') === 'true' || dietaryType === 'low_protein',
+      isLactoseFree: searchParams.get('lactose_free') === 'true' || dietaryType === 'lactose_free',
+      isEggFree: searchParams.get('egg_free') === 'true' || dietaryType === 'egg_free',
       minPrice: searchParams.get('min_price') || '',
       maxPrice: searchParams.get('max_price') || '',
     };
@@ -72,6 +80,8 @@ const ProductCatalog = () => {
     }
     if (filters.isGlutenFree === true) searchFilters.is_gluten_free = true;
     if (filters.isLowProtein === true) searchFilters.is_low_protein = true;
+    if (filters.isLactoseFree === true) searchFilters.is_lactose_free = true;
+    if (filters.isEggProtein === true) searchFilters.is_egg_free = true;
     if (filters.minPrice) searchFilters.min_price = filters.minPrice;
     if (filters.maxPrice) searchFilters.max_price = filters.maxPrice;
 
@@ -101,6 +111,10 @@ const ProductCatalog = () => {
           params.set('gluten_free', value);
         } else if (key === 'isLowProtein') {
           params.set('low_protein', value);
+        } else if (key === 'isLactoseFree') {
+          params.set('lactose_free', value);
+        } else if (key === 'isEggFree') {
+          params.set('egg_free', value);  
         } else if (key === 'minPrice') {
           params.set('min_price', value);
         } else if (key === 'maxPrice') {
@@ -127,10 +141,7 @@ const ProductCatalog = () => {
   }
 
   return (
-    <div className="product-catalog" key={refreshKey}>
-      {/* Admin Toolbar - показывается только для администраторов */}
-      <AdminToolbar />
-      
+    <div className="product-catalog" key={refreshKey}>    
       <div className="catalog-header">
         <h2>Каталог товаров</h2>
         <div className="catalog-controls">
@@ -185,6 +196,8 @@ const ProductCatalog = () => {
                           search: filters.search,
                           is_gluten_free: filters.isGlutenFree,
                           is_low_protein: filters.isLowProtein,
+                          is_lactose_free: filters.isLactoseFree,
+                          is_egg_free: filters.isEggFree,
                           min_price: filters.minPrice,
                           max_price: filters.maxPrice,
                         };

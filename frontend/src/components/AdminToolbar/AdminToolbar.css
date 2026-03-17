@@ -8,7 +8,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.toolbar-content {
+.admin-toolbar .toolbar-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -16,13 +16,13 @@
   margin: 0 auto;
 }
 
-.toolbar-title {
+.admin-toolbar .toolbar-title {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.admin-icon {
+.admin-toolbar .admin-icon {
   font-size: 1.5rem;
   animation: rotate 2s linear infinite;
 }
@@ -32,13 +32,13 @@
   to { transform: rotate(360deg); }
 }
 
-.toolbar-title span:nth-child(2) {
+.admin-toolbar .toolbar-title span:nth-child(2) {
   font-size: 1.2rem;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.user-role {
+.admin-toolbar .user-role {
   background: rgba(255, 255, 255, 0.2);
   padding: 4px 12px;
   border-radius: 16px;
@@ -48,13 +48,13 @@
   letter-spacing: 0.5px;
 }
 
-.toolbar-actions {
+.admin-toolbar .toolbar-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.toolbar-btn {
+.admin-toolbar .toolbar-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -69,34 +69,34 @@
   white-space: nowrap;
 }
 
-.toolbar-btn.primary {
+.admin-toolbar .toolbar-btn.primary {
   background: #28a745;
   color: white;
   box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
-.toolbar-btn.primary:hover {
+.admin-toolbar .toolbar-btn.primary:hover {
   background: #218838;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-.toolbar-btn.secondary {
+.admin-toolbar .toolbar-btn.secondary {
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.toolbar-btn.secondary:hover {
+.admin-toolbar .toolbar-btn.secondary:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
 }
 
-.btn-icon {
+.admin-toolbar .btn-icon {
   font-size: 1rem;
 }
 
-.toolbar-stats {
+.admin-toolbar .toolbar-stats {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -105,34 +105,34 @@
   border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.stat-item {
+.admin-toolbar .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.stat-label {
+.admin-toolbar .stat-label {
   font-size: 0.75rem;
   opacity: 0.8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.stat-value {
+.admin-toolbar .stat-value {
   font-size: 0.9rem;
   font-weight: 600;
   min-height: 1.2em; /* Prevent collapse */
 }
 
 /* Ensure stat values always have content and proper styling */
-.stat-value {
+.admin-toolbar .stat-value {
   color: white;
   background: transparent;
 }
 
 /* Prevent white squares by ensuring proper content handling */
-.stat-value {
+.admin-toolbar .stat-value {
   min-width: 0;
   overflow: hidden;
   background: transparent !important;
@@ -140,46 +140,46 @@
   box-shadow: none !important;
 }
 
-.stat-value:empty {
+.admin-toolbar .stat-value:empty {
   display: none !important;
 }
 
-.stat-value:empty + .stat-label {
+.admin-toolbar .stat-value:empty + .stat-label {
   display: none !important;
 }
 
 /* Ensure no background or borders create white squares */
-.toolbar-stats {
+.admin-toolbar .toolbar-stats {
   background: transparent;
 }
 
-.stat-item {
+.admin-toolbar .stat-item {
   background: transparent;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .admin-toolbar {
+  .admin-toolbar .admin-toolbar {
     padding: 12px 16px;
     margin-bottom: 16px;
   }
   
-  .toolbar-content {
+  .admin-toolbar .toolbar-content {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
   
-  .toolbar-title {
+  .admin-toolbar .toolbar-title {
     justify-content: center;
   }
   
-  .toolbar-actions {
+  .admin-toolbar .toolbar-actions {
     flex-wrap: wrap;
     justify-content: center;
   }
   
-  .toolbar-stats {
+  .admin-toolbar .toolbar-stats {
     margin-left: 0;
     padding-left: 0;
     border-left: none;
@@ -188,28 +188,28 @@
     justify-content: center;
   }
   
-  .toolbar-btn {
+  .admin-toolbar .toolbar-btn {
     padding: 8px 12px;
     font-size: 0.85rem;
   }
 }
 
 @media (max-width: 480px) {
-  .toolbar-actions {
+  .admin-toolbar .toolbar-actions {
     flex-direction: column;
     gap: 8px;
   }
   
-  .toolbar-btn {
+  .admin-toolbar .toolbar-btn {
     width: 100%;
     justify-content: center;
   }
   
-  .toolbar-title span:nth-child(2) {
+  .admin-toolbar .toolbar-title span:nth-child(2) {
     font-size: 1rem;
   }
   
-  .user-role {
+  .admin-toolbar .user-role {
     font-size: 0.75rem;
     padding: 3px 8px;
   }

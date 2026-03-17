@@ -24,7 +24,7 @@ const RegisterForm = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/products', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 

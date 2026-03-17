@@ -43,6 +43,8 @@ def get_cart(request):
                 'slug': item.product.slug,
                 'is_gluten_free': item.product.is_gluten_free,
                 'is_low_protein': item.product.is_low_protein,
+                'is_lactose_free': item.product.is_lactose_free,
+                'is_egg_free': item.product.is_egg_free,
                 'images': [{
                     'image': request.build_absolute_uri(primary_image.image.url) if primary_image else None,
                     'alt_text': primary_image.alt_text if primary_image else item.product.name,

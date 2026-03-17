@@ -146,11 +146,9 @@ const ProductDetail = () => {
     if (!dietary) return null;
 
     const dietaryFeatures = [];
-    if (dietary.is_vegetarian) dietaryFeatures.push('Вегетарианский');
-    if (dietary.is_vegan) dietaryFeatures.push('Веганский');
     if (dietary.is_gluten_free) dietaryFeatures.push('Без глютена');
     if (dietary.is_lactose_free) dietaryFeatures.push('Без лактозы');
-    if (dietary.is_organic) dietaryFeatures.push('Органический');
+    if (dietary.is_egg_free) dietaryFeatures.push('Без яиц');
 
     if (dietaryFeatures.length === 0) return null;
 
@@ -232,6 +230,12 @@ const ProductDetail = () => {
               )}
               {currentProduct.is_low_protein && (
                 <span className="badge low-protein">Низкобелковый</span>
+              )}
+              {currentProduct.is_lactose_free && (
+                <span className="badge lactose-free">Без лактозы</span>
+              )}
+              {currentProduct.is_egg_free && (
+                <span className="badge egg-free">Без яиц</span>
               )}
             </div>
           </div>

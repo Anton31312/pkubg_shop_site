@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { fetchCart } from './store/cartSlice';
 import { initializeAuth } from './store/authSlice';
+import { LegalInfoProvider } from './contexts/LegalInfoContext';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import AppRoutes from './routes/AppRoutes';
-import NotificationContainer from './components/Notifications/NotificationContainer';
-import ResponsiveLayout from './components/ResponsiveLayout';
+import CookieBanner from './legal/CookieBanner';
 import './App.css';
 
 function App() {
@@ -15,41 +15,24 @@ function App() {
   const location = useLocation();
   const { isAuthenticated, loading, initialized } = useSelector(state => state.auth);
 
+  // Инициализация авторизации
   useEffect(() => {
-    // Initialize authentication on app start
     dispatch(initializeAuth());
   }, [dispatch]);
 
+  // Загрузка корзины после авторизации
   useEffect(() => {
-    // Load cart when user is authenticated
     if (isAuthenticated && initialized) {
       dispatch(fetchCart());
     }
   }, [dispatch, isAuthenticated, initialized]);
 
-  // Обновление при каждом изменении роута
+  // Скролл наверх при смене страницы
   useEffect(() => {
-    // Принудительное обновление состояния при смене страницы
-    console.log('Route changed to:', location.pathname);
-    
-    // Очищаем кэш и обновляем данные
-    if (isAuthenticated && initialized) {
-      // Обновляем корзину при каждом переходе
-      dispatch(fetchCart());
-    }
-    
-    // Прокручиваем страницу наверх при переходе
     window.scrollTo(0, 0);
-    
-    // Принудительное обновление DOM
-    setTimeout(() => {
-      // Триггерим перерисовку компонентов
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    
-  }, [location.pathname, dispatch, isAuthenticated, initialized]);
+  }, [location.pathname]);
 
-  // Show loading screen while initializing auth
+  // Экран загрузки пока инициализируется auth
   if (!initialized && loading) {
     return (
       <div className="App">
@@ -62,14 +45,16 @@ function App() {
   }
 
   return (
-    <ResponsiveLayout className="App" key={location.pathname}>
-      <Header />
-      <NotificationContainer />
-      <main className="main-content">
-        <AppRoutes />
-      </main>
-      <Footer />
-    </ResponsiveLayout>
+    <LegalInfoProvider>
+      <div className="App">
+        <Header />
+        <main className="main-content">
+          <AppRoutes />
+        </main>
+        <Footer />
+        <CookieBanner />
+      </div>
+    </LegalInfoProvider>
   );
 }
 

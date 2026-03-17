@@ -146,19 +146,6 @@ const ShoppingCart = () => {
                 <span className="total-amount">{formatPrice(total)}</span>
               </div>
               
-              <div className="savings-info">
-                {total > 2000 && (
-                  <div className="free-delivery">
-                    ✅ Бесплатная доставка при заказе от 2000 ₽
-                  </div>
-                )}
-                {total < 2000 && (
-                  <div className="delivery-threshold">
-                    Добавьте товаров на {formatPrice(2000 - total)} для бесплатной доставки
-                  </div>
-                )}
-              </div>
-
               <div className="cart-actions">
                 {isAuthenticated ? (
                   <Link to="/checkout" className="checkout-btn">
@@ -176,7 +163,7 @@ const ShoppingCart = () => {
                   </div>
                 )}
                 
-                <Link to="/" className="continue-shopping">
+                <Link to="/products" className="continue-shopping">
                   ← Продолжить покупки
                 </Link>
               </div>
@@ -189,3 +176,19 @@ const ShoppingCart = () => {
 };
 
 export default ShoppingCart;
+
+// Будет реализовано позже
+//<div className="savings-info">
+              //   {total > 2000 && (
+              //     <div className="free-delivery">
+              //       ✅ Бесплатная доставка при заказе от 2000 ₽
+              //     </div>
+              //   )}
+              //   {total < 2000 && (
+              //     <div className="delivery-threshold">
+              //       Добавьте товаров на {formatPrice(2000 - total)} для бесплатной доставки
+              //     </div>
+              //   )}
+              // </div> 
+
+

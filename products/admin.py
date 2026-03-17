@@ -72,7 +72,7 @@ class ProductAdminForm(forms.ModelForm):
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
     list_display = ('name', 'manufacturer', 'category', 'price', 'stock_quantity', 'is_active', 'created_at')
-    list_filter = ('category', 'manufacturer', 'is_active', 'is_gluten_free', 'is_low_protein')
+    list_filter = ('category', 'manufacturer', 'is_active', 'is_gluten_free', 'is_low_protein', 'is_lactose_free', 'is_egg_free')
     search_fields = ('name', 'description', 'manufacturer', 'composition')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ProductImageInline]
@@ -86,7 +86,7 @@ class ProductAdmin(admin.ModelAdmin):
             'description': 'Информация о производителе, составе и условиях хранения'
         }),
         ('Характеристики', {
-            'fields': ('is_gluten_free', 'is_low_protein', 'stock_quantity', 'is_active')
+            'fields': ('is_gluten_free', 'is_low_protein', 'stock_quantity', 'is_active', 'is_lactose_free', 'is_egg_free')
         }),
         ('Пищевая ценность', {
             'fields': ('nutritional_info',),
