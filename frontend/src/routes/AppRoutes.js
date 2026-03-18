@@ -130,7 +130,7 @@ const AppRoutes = () => {
 
           {/* ═══ Админка ═══ */}
           <Route
-            path="/manage/legal-info"
+            path="/settings/legal-info"
             element={
               <ProtectedRoute requiredRole="admin">
                 <LegalInfoAdmin />
