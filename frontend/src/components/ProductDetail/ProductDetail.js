@@ -10,11 +10,11 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   const { currentProduct, items: allProducts, loading, error } = useSelector(state => state.products);
   const { isAuthenticated } = useSelector(state => state.auth);
   const { loading: cartLoading, error: cartError } = useSelector(state => state.cart);
-  
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -27,9 +27,16 @@ const ProductDetail = () => {
   }, [dispatch, id]);
 
   useEffect(() => {
-    // Fetch related products when current product is loaded
-    if (currentProduct?.category) {
-      dispatch(fetchProducts({ category: currentProduct.category.id }));
+    if (currentProduct) {
+      // category может быть объектом {id, name} или числом
+      const categoryId = currentProduct.category?.id || currentProduct.category;
+      if (categoryId) {
+        dispatch(fetchProducts({
+          search: '',
+          category: '',
+          filters: { category: categoryId }
+        }));
+      }
     }
   }, [dispatch, currentProduct]);
 
@@ -51,17 +58,17 @@ const ProductDetail = () => {
 
     try {
       if (isAuthenticated) {
-        await dispatch(addToCart({ 
-          productId: currentProduct.id, 
+        await dispatch(addToCart({
+          productId: currentProduct.id,
           quantity,
           product: currentProduct
         })).unwrap();
         // Show success message
         console.log('Product added to cart successfully');
       } else {
-        dispatch(addToLocalCart({ 
-          product: currentProduct, 
-          quantity 
+        dispatch(addToLocalCart({
+          product: currentProduct,
+          quantity
         }));
         // Check if there was an error (handled by useEffect)
         if (!cartError) {
@@ -84,20 +91,22 @@ const ProductDetail = () => {
 
   const getRelatedProducts = () => {
     if (!currentProduct || !allProducts) return [];
-    
+
+    const currentCategoryId = currentProduct.category?.id || currentProduct.category;
+
     return allProducts
-      .filter(product => 
-        product.category.id === currentProduct.category.id && 
-        product.id !== currentProduct.id
-      )
-      .slice(0, 4); // Show max 4 related products
+      .filter(product => {
+        const productCategoryId = product.category?.id || product.category;
+        return productCategoryId === currentCategoryId && product.id !== currentProduct.id;
+      })
+      .slice(0, 4);
   };
 
   const renderNutritionalInfo = () => {
     if (!currentProduct?.nutritional_info?.per_100g) return null;
 
     const nutrition = currentProduct.nutritional_info.per_100g;
-    
+
     return (
       <div className="nutritional-info">
         <h4>Пищевая ценность на 100г</h4>
@@ -194,7 +203,7 @@ const ProductDetail = () => {
     <div className="product-detail">
       {/* Back to Catalog Link */}
       <div className="back-to-catalog">
-        <Link to="/catalog" className="back-link">
+        <Link to="/products" className="back-link">
           ← Вернуться в каталог товаров
         </Link>
       </div>
@@ -203,7 +212,7 @@ const ProductDetail = () => {
       <nav className="breadcrumbs">
         <Link to="/">Главная</Link>
         <span>/</span>
-        <Link to="/catalog">Каталог</Link>
+        <Link to="/products">Каталог</Link>
         <span>/</span>
         <span>{currentProduct.name}</span>
       </nav>
@@ -213,8 +222,8 @@ const ProductDetail = () => {
         <div className="product-images">
           <div className="main-image">
             {currentProduct.images && currentProduct.images.length > 0 ? (
-              <img 
-                src={currentProduct.images[selectedImage]?.image || primaryImage?.image} 
+              <img
+                src={currentProduct.images[selectedImage]?.image || primaryImage?.image}
                 alt={currentProduct.images[selectedImage]?.alt_text || currentProduct.name}
               />
             ) : (
@@ -239,7 +248,7 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
-          
+
           {currentProduct.images && currentProduct.images.length > 1 && (
             <div className="image-thumbnails">
               {currentProduct.images.map((image, index) => (
@@ -257,14 +266,14 @@ const ProductDetail = () => {
 
         <div className="product-info">
           <h1>{currentProduct.name}</h1>
-          
+
           {currentProduct.manufacturer && (
             <div className="product-manufacturer">
               <span className="manufacturer-label">Производитель:</span>
               <span className="manufacturer-name">{currentProduct.manufacturer}</span>
             </div>
           )}
-          
+
 
           <div className="product-price">
             {formatPrice(currentProduct.price)}
@@ -282,7 +291,7 @@ const ProductDetail = () => {
             <div className="quantity-selector">
               <label>Количество:</label>
               <div className="quantity-controls">
-                <button 
+                <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1}
                 >
@@ -295,7 +304,7 @@ const ProductDetail = () => {
                   min="1"
                   max={currentProduct.stock_quantity}
                 />
-                <button 
+                <button
                   onClick={() => setQuantity(Math.min(currentProduct.stock_quantity, quantity + 1))}
                   disabled={quantity >= currentProduct.stock_quantity}
                 >
@@ -311,7 +320,7 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <button 
+            <button
               className="add-to-cart-btn"
               onClick={handleAddToCart}
               disabled={cartLoading || currentProduct.stock_quantity === 0}
@@ -329,19 +338,19 @@ const ProductDetail = () => {
       {/* Product Details Tabs */}
       <div className="product-tabs">
         <div className="tab-buttons">
-          <button 
+          <button
             className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
             onClick={() => setActiveTab('description')}
           >
             Описание
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === 'nutrition' ? 'active' : ''}`}
             onClick={() => setActiveTab('nutrition')}
           >
             Состав и пищевая ценность
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === 'storage' ? 'active' : ''}`}
             onClick={() => setActiveTab('storage')}
           >
@@ -357,7 +366,7 @@ const ProductDetail = () => {
               {renderAllergens()}
             </div>
           )}
-          
+
           {activeTab === 'nutrition' && (
             <div className="tab-panel">
               {currentProduct.composition && (
@@ -369,7 +378,7 @@ const ProductDetail = () => {
               {renderNutritionalInfo()}
             </div>
           )}
-          
+
           {activeTab === 'storage' && (
             <div className="tab-panel">
               {currentProduct.storage_conditions ? (

@@ -159,7 +159,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': 1000,
 }
 
 # JWT Settings
@@ -377,6 +377,26 @@ LOGGING = {
         },
     },
 }
+
+# ============================================================================
+# EMAIL SETTINGS
+# ============================================================================
+
+if DEBUG:
+    # Для тестирования — выводит письма в консоль
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Для продакшена — Mail.ru SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.mail.ru'
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 # Создаем директорию для логов если её нет
 import os

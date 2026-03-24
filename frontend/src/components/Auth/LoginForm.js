@@ -94,8 +94,8 @@ const LoginForm = () => {
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="auth-submit-btn"
             disabled={loading}
           >
@@ -105,12 +105,14 @@ const LoginForm = () => {
 
         <div className="auth-footer">
           <p>
-            Нет аккаунта? 
+            Нет аккаунта?{' '}
             <Link to="/register" className="auth-link">
               Зарегистрироваться
             </Link>
           </p>
-          
+          <Link to="/forgot-password" className="forgot-password">
+            Забыли пароль?
+          </Link>
         </div>
       </div>
     </div>

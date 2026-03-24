@@ -31,6 +31,8 @@ const ArticleForm = React.lazy(() => import('../components/Articles/ArticleForm'
 const AboutPage = React.lazy(() => import('../components/AboutPage/AboutPage'));
 const PaymentSuccess = React.lazy(() => import('../components/PaymentSuccess/PaymentSuccess'));
 const LegalInfoAdmin = React.lazy(() => import('../components/Admin/LegalInfoAdmin'));
+const ForgotPassword = React.lazy(() => import('../components/Auth/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('../components/Auth/ResetPassword'));
 
 const ContactPage = () => <div>Contact Page (Coming Soon)</div>;
 
@@ -92,6 +94,16 @@ const AppRoutes = () => {
                 ? <Navigate to="/products" replace />
                 : <RegisterForm />
             }
+          />
+
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+
+          <Route
+            path="/reset-password"
+            element={<ResetPassword />}
           />
 
           {/* ═══ Защищённые (нужна авторизация) ═══ */}

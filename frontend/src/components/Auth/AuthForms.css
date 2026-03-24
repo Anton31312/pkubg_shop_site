@@ -39,6 +39,21 @@
   gap: 1.5rem;
 }
 
+.forgot-password {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.forgot-password:hover {
+  color: #2c5530;
+  text-decoration: underline;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

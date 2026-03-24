@@ -11,6 +11,8 @@ from .views import (
     UserOrderHistoryView,
     logout_view,
     user_dashboard_view,
+    password_reset_request,      
+    password_reset_confirm,      
 )
 
 urlpatterns = [
@@ -22,6 +24,10 @@ urlpatterns = [
     
     # Registration
     path('register/', UserRegistrationView.as_view(), name='register'),
+    
+    # Password Reset  ← добавь эти 2 строки
+    path('password-reset/', password_reset_request, name='password_reset'),
+    path('password-reset/confirm/', password_reset_confirm, name='password_reset_confirm'),
     
     # User Profile
     path('profile/', UserProfileView.as_view(), name='user_profile'),

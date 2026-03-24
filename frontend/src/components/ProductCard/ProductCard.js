@@ -1,21 +1,27 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { addToCart, addToLocalCart } from '../../store/cartSlice';
+import { addToCart, addToLocalCart, removeFromCart, updateCartItem } from '../../store/cartSlice';
 import AdminProductActions from '../AdminToolbar/AdminProductActions';
 import './ProductCard.css';
 
 const ProductCard = ({ product, onUpdate }) => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector(state => state.auth);
+  const { items: cartItems } = useSelector(state => state.cart);
 
   const [imageError, setImageError] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartError, setCartError] = useState(null);
 
-  // ═══ Добавление в корзину ═══
+  // Найти текущее количество этого товара в корзине
+  const cartItem = cartItems?.find(
+    item => item.product?.id === product.id || item.product_id === product.id
+  );
+  const quantityInCart = cartItem?.quantity || 0;
+
+  // ═══ Добавление в корзину (первое нажатие) ═══
   const handleAddToCart = useCallback(async (e) => {
-    // Блокируем переход по Link
     e.preventDefault();
     e.stopPropagation();
 
@@ -41,6 +47,69 @@ const ProductCard = ({ product, onUpdate }) => {
       setAddingToCart(false);
     }
   }, [dispatch, isAuthenticated, product, addingToCart]);
+
+  // ═══ Увеличить количество ═══
+  const handleIncrement = useCallback(async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (addingToCart) return;
+    setAddingToCart(true);
+
+    try {
+      if (isAuthenticated && cartItem?.id) {
+        await dispatch(updateCartItem({
+          itemId: cartItem.id,
+          quantity: quantityInCart + 1
+        })).unwrap();
+      } else {
+        dispatch(addToLocalCart({ product, quantity: 1 }));
+      }
+    } catch (err) {
+      const message = err?.message || 'Ошибка обновления корзины';
+      setCartError(message);
+      setTimeout(() => setCartError(null), 3000);
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [dispatch, isAuthenticated, product, cartItem, quantityInCart, addingToCart]);
+
+  // ═══ Уменьшить количество ═══
+  const handleDecrement = useCallback(async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (addingToCart) return;
+    setAddingToCart(true);
+
+    try {
+      if (quantityInCart <= 1) {
+        // Удалить из корзины полностью
+        if (isAuthenticated && cartItem?.id) {
+          await dispatch(removeFromCart(cartItem.id)).unwrap();
+        } else {
+          // Для локальной корзины — убрать товар
+          dispatch(addToLocalCart({ product, quantity: -quantityInCart }));
+        }
+      } else {
+        // Уменьшить на 1
+        if (isAuthenticated && cartItem?.id) {
+          await dispatch(updateCartItem({
+            itemId: cartItem.id,
+            quantity: quantityInCart - 1
+          })).unwrap();
+        } else {
+          dispatch(addToLocalCart({ product, quantity: -1 }));
+        }
+      }
+    } catch (err) {
+      const message = err?.message || 'Ошибка обновления корзины';
+      setCartError(message);
+      setTimeout(() => setCartError(null), 3000);
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [dispatch, isAuthenticated, product, cartItem, quantityInCart, addingToCart]);
 
   // ═══ Форматирование цены ═══
   const formatPrice = (price) => {
@@ -72,21 +141,18 @@ const ProductCard = ({ product, onUpdate }) => {
   return (
     <div className="product-card">
 
-      {/* ── Ошибка добавления в корзину (локальная) ── */}
       {cartError && (
         <div className="stock-error-message" role="alert">
           {cartError}
         </div>
       )}
 
-      {/* ── Основная ссылка — вся карточка кликабельна ── */}
       <Link
         to={`/products/${product.id}`}
         className="product-link"
         aria-label={`Открыть ${product.name}`}
       >
 
-        {/* ── Изображение ── */}
         <div className="product-image-container">
           {primaryImage && !imageError ? (
             <img
@@ -102,21 +168,18 @@ const ProductCard = ({ product, onUpdate }) => {
             </div>
           )}
 
-          {/* Оверлей "Нет в наличии" — не блокирует клики */}
           {isOutOfStock && (
             <div className="out-of-stock-overlay">
               Нет в наличии
             </div>
           )}
 
-          {/* Скидка */}
           {showDiscount && (
             <div className="discount-flag">
               -{discountPercent}%
             </div>
           )}
 
-          {/* Бейджи — не блокируют клики */}
           <div className="product-badges">
             {product.is_gluten_free && (
               <span className="badge gluten-free">Без глютена</span>
@@ -133,10 +196,8 @@ const ProductCard = ({ product, onUpdate }) => {
           </div>
         </div>
 
-        {/* ── Информация о товаре ── */}
         <div className="product-info">
 
-          {/* Цена */}
           <div className="price-block">
             <span className="current-price">
               {formatPrice(product.price)}
@@ -149,36 +210,59 @@ const ProductCard = ({ product, onUpdate }) => {
             )}
           </div>
 
-          {/* Остаток (мало) */}
           {!isOutOfStock && product.stock_quantity < 10 && (
             <div className="stock-status low-stock">
               Осталось {product.stock_quantity} шт.
             </div>
           )}
 
-          {/* Название */}
           <h3 className="product-name">{product.name}</h3>
 
-          {/* Производитель */}
           {product.manufacturer && (
             <p className="product-manufacturer">
               {product.manufacturer}
             </p>
           )}
 
-          {/* Кнопка "В корзину" */}
+          {/* ═══ Кнопка / Счётчик ═══ */}
           {!isOutOfStock && (
-            <button
-              onClick={handleAddToCart}
-              disabled={addingToCart}
-              className="add-to-cart-btn"
-              aria-label={`Добавить ${product.name} в корзину`}
-            >
-              🛒 {addingToCart ? 'Добавление...' : 'В корзину'}
-            </button>
+            <>
+              {quantityInCart === 0 ? (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  className="add-to-cart-btn"
+                  aria-label={`Добавить ${product.name} в корзину`}
+                >
+                  🛒 {addingToCart ? '...' : 'В корзину'}
+                </button>
+              ) : (
+                <div 
+                  className="quantity-counter"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                >
+                  <button
+                    className="quantity-btn minus"
+                    onClick={handleDecrement}
+                    disabled={addingToCart}
+                    aria-label="Уменьшить количество"
+                  >
+                    −
+                  </button>
+                  <span className="quantity-value">{quantityInCart}</span>
+                  <button
+                    className="quantity-btn plus"
+                    onClick={handleIncrement}
+                    disabled={addingToCart || quantityInCart >= product.stock_quantity}
+                    aria-label="Увеличить количество"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Кнопка для товара не в наличии */}
           {isOutOfStock && (
             <div className="out-of-stock-label">
               Нет в наличии
@@ -187,8 +271,6 @@ const ProductCard = ({ product, onUpdate }) => {
         </div>
       </Link>
 
-      {/* ── Админ-панель — ПОСЛЕ Link, компактная в углу ── */}
-      {/* Не перекрывает карточку, только маленький бейдж + dropdown */}
       <AdminProductActions product={product} onUpdate={onUpdate} />
     </div>
   );

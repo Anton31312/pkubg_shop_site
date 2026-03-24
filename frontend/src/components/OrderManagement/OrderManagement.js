@@ -30,7 +30,7 @@ const OrderManagement = () => {
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       console.log('Fetching orders with filters:', filters);
       const response = await apiHelpers.get('/orders/admin/all/', filters);
@@ -82,16 +82,16 @@ const OrderManagement = () => {
       if (paymentStatus) updateData.payment_status = paymentStatus;
 
       await apiHelpers.patch(`/orders/admin/${orderId}/update/`, updateData);
-      
+
       // Refresh orders list
       fetchOrders();
-      
+
       // Update selected order if modal is open
       if (selectedOrder && selectedOrder.id === orderId) {
         const response = await apiHelpers.get(`/orders/admin/${orderId}/`);
         setSelectedOrder(response.data);
       }
-      
+
       alert('Статус заказа обновлен');
     } catch (err) {
       alert('Ошибка обновления статуса');
@@ -339,6 +339,21 @@ const OrderManagement = () => {
                 <div className="items-list">
                   {selectedOrder.items.map((item) => (
                     <div key={item.id} className="item-row">
+                      <div className="item-image-wrapper">
+                        {item.product.image || item.product.images?.[0]?.image ? (
+                          <img
+                            src={
+                              item.product.image ||
+                              item.product.images?.find(img => img.is_primary)?.image ||
+                              item.product.images?.[0]?.image
+                            }
+                            alt={item.product.name}
+                            className="item-thumbnail"
+                          />
+                        ) : (
+                          <div className="item-thumbnail-placeholder">📦</div>
+                        )}
+                      </div>
                       <div className="item-info">
                         <span className="item-name">{item.product.name}</span>
                         <span className="item-quantity">x{item.quantity}</span>
