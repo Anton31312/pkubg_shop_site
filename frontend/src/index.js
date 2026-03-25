@@ -1,14 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import App from './App';
 import './index.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const container = document.getElementById('root');
 
-root.render(
+const app = (
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
@@ -17,3 +17,11 @@ root.render(
     </Provider>
   </React.StrictMode>
 );
+
+// react-snap: если HTML уже есть (пререндер) — hydrate, если нет — render
+if (container.hasChildNodes()) {
+  hydrateRoot(container, app);
+} else {
+  const root = createRoot(container);
+  root.render(app);
+}

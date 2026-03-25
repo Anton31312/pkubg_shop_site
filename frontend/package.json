@@ -18,13 +18,27 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
-    "fast-check": "^3.15.0"
+    "fast-check": "^3.15.0",
+    "react-snap": "^1.23.0"
   },
+  
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --run",
+    "postbuild": "react-snap",
     "eject": "react-scripts eject"
+  },
+  "reactSnap": {
+    "source": "build",
+    "inlineCss": true,
+    "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
+    "include": [
+      "/",
+      "/products",
+      "/articles",
+      "/about"
+    ]
   },
   "eslintConfig": {
     "extends": [
