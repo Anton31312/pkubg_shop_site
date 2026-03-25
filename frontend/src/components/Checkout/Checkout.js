@@ -15,7 +15,7 @@ const Checkout = () => {
   const [error, setError] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  
+
   const [orderData, setOrderData] = useState({
     shipping_address: '',
     shipping_contact: '',
@@ -35,7 +35,7 @@ const Checkout = () => {
       navigate('/login');
       return;
     }
-    
+
     if (count === 0) {
       navigate('/cart');
       return;
@@ -49,7 +49,7 @@ const Checkout = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        suggestionsRef.current && 
+        suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target) &&
         addressInputRef.current &&
         !addressInputRef.current.contains(event.target)
@@ -66,7 +66,7 @@ const Checkout = () => {
     try {
       const response = await api.get('/auth/profile/');
       const profile = response.data;
-      
+
       // Подтягиваем номер телефона и адрес из профиля, если они есть
       setOrderData(prev => ({
         ...prev,
@@ -93,17 +93,17 @@ const Checkout = () => {
 
     try {
       console.log('Fetching address suggestions for:', query);
-      
+
       const response = await api.post('/address-suggestions/', {
         query: query
       });
 
       console.log('API Response:', response.data);
       console.log('Received suggestions:', response.data.suggestions?.length || 0);
-      
+
       const suggestions = response.data.suggestions || [];
       setAddressSuggestions(suggestions);
-      
+
       if (suggestions.length > 0) {
         setShowSuggestions(true);
       } else {
@@ -124,12 +124,12 @@ const Checkout = () => {
       shipping_address: value
     }));
     setSelectedAddress(null);
-    
+
     // Очищаем предыдущий таймер
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     // Устанавливаем новый таймер с задержкой 300ms
     debounceTimerRef.current = setTimeout(() => {
       fetchAddressSuggestions(value);
@@ -150,12 +150,12 @@ const Checkout = () => {
     if (!orderData.shipping_address.trim()) {
       return false;
     }
-    
+
     // Если адрес выбран из Dadata, считаем его валидным
     if (selectedAddress !== null) {
       return true;
     }
-    
+
     // Проверяем структуру адреса через запятую
     return validateAddressStructure(orderData.shipping_address);
   };
@@ -167,7 +167,7 @@ const Checkout = () => {
 
     // Разбиваем адрес по запятым и очищаем от лишних пробелов
     const parts = address.split(',').map(part => part.trim()).filter(part => part.length > 0);
-    
+
     // Минимум должно быть: страна, город, улица, дом
     if (parts.length < 4) {
       return false;
@@ -259,7 +259,7 @@ const Checkout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!orderData.shipping_address.trim()) {
       setError('Пожалуйста, укажите адрес доставки');
       return;
@@ -285,7 +285,7 @@ const Checkout = () => {
     try {
       // Сохраняем номер телефона в профиль пользователя, если он был заполнен
       try {
-        await api.put('/auth/profile/', {
+        await api.patch('/auth/profile/', {
           phone: orderData.shipping_contact,
           address: orderData.shipping_address
         });
@@ -322,7 +322,7 @@ const Checkout = () => {
     } catch (err) {
       console.error('Checkout error:', err);
       setError(
-        err.response?.data?.error || 
+        err.response?.data?.error ||
         'Произошла ошибка при оформлении заказа. Попробуйте еще раз.'
       );
       setLoading(false);
@@ -346,13 +346,13 @@ const Checkout = () => {
               С вами в скором времени свяжется менеджер для подтверждения заказа и уточнения деталей доставки.
             </p>
             <div className="success-actions">
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => navigate('/orders')}
               >
                 Мои заказы
               </button>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => navigate('/')}
               >
@@ -383,7 +383,7 @@ const Checkout = () => {
             <form onSubmit={handleSubmit} className="checkout-form">
               <div className="form-section">
                 <h3>Информация о доставке</h3>
-                
+
                 <div className="form-group address-autocomplete">
                   <label htmlFor="shipping_address">
                     Адрес доставки <span className="required">*</span>
@@ -488,8 +488,8 @@ const Checkout = () => {
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary btn-large"
                 disabled={loading || !orderData.shipping_address.trim()}
               >
@@ -501,7 +501,7 @@ const Checkout = () => {
           <div className="checkout-sidebar">
             <div className="order-summary">
               <h3>Ваш заказ</h3>
-              
+
               <div className="order-items">
                 {items.map(item => (
                   <div key={item.id} className="order-item">
@@ -530,7 +530,7 @@ const Checkout = () => {
                   <span>{formatPrice(total)}</span>
                 </div>
               </div>
-              
+
             </div>
           </div>
         </div>
