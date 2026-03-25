@@ -62,7 +62,9 @@ const RegisterForm = () => {
       errors.last_name = 'Фамилия обязательна';
     }
 
-    if (formData.phone && !/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
+    if (!formData.phone) {
+      errors.phone = 'Телефон обязателен';
+    } else if (formData.phone && !/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
       errors.phone = 'Некорректный номер телефона';
     }
 
@@ -176,7 +178,7 @@ const RegisterForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Телефон</label>
+            <label htmlFor="phone">Телефон *</label>
             <input
               type="tel"
               id="phone"
