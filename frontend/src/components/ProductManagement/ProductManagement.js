@@ -42,12 +42,12 @@ const ProductManagement = () => {
       console.log('ProductManagement: Fetching categories...');
       const response = await api.get('/products/categories/');
       console.log('ProductManagement: Categories response:', response.data);
-      
+
       // Handle both paginated and non-paginated responses
       const categoriesData = response.data.results || response.data;
       console.log('ProductManagement: Categories data:', categoriesData);
       console.log('ProductManagement: Is array?', Array.isArray(categoriesData));
-      
+
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -60,11 +60,23 @@ const ProductManagement = () => {
     setShowForm(true);
   };
 
-  const handleEditProduct = (product) => {
-    setSelectedProduct(product);
-    setShowForm(true);
+  const handleEditProduct = async (product) => {
+    try {
+      // Загружаем полные данные товара, включая nutritional_info
+      const response = await api.get(`/products/products/${product.id}/`);
+      const fullProduct = response.data;
+      console.log('Full product data:', fullProduct);
+      console.log('nutritional_info:', fullProduct.nutritional_info);
+      setSelectedProduct(fullProduct);
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      // Fallback — используем данные из списка
+      setSelectedProduct(product);
+      setShowForm(true);
+    }
   };
-
+  
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
       try {
@@ -80,7 +92,7 @@ const ProductManagement = () => {
   const handleFormSubmit = async (formData) => {
     try {
       console.log('ProductManagement: Submitting form data:', formData);
-      
+
       // Ensure proper data types and required fields
       const submitData = {
         ...formData,
@@ -90,9 +102,9 @@ const ProductManagement = () => {
         // Ensure slug is present and limited to 50 characters
         slug: formData.slug || generateSlug(formData.name)
       };
-      
+
       console.log('ProductManagement: Processed submit data:', submitData);
-      
+
       if (selectedProduct) {
         await api.put(`/products/products/${selectedProduct.id}/`, submitData);
       } else {
@@ -123,7 +135,7 @@ const ProductManagement = () => {
     try {
       await api.patch(`/products/products/${product.id}/toggle_active/`);
       await fetchProducts(); // Refresh the list
-      
+
       // Show success message
       const message = product.is_active ? 'Товар скрыт' : 'Товар показан';
       // You can add a toast notification here if you have one
@@ -136,12 +148,12 @@ const ProductManagement = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      product.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || product.category?.id.toString() === filterCategory;
-    const matchesStatus = filterStatus === 'all' || 
-                         (filterStatus === 'active' && product.is_active) ||
-                         (filterStatus === 'inactive' && !product.is_active);
-    
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && product.is_active) ||
+      (filterStatus === 'inactive' && !product.is_active);
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -165,7 +177,7 @@ const ProductManagement = () => {
             Добавляйте, редактируйте и управляйте товарами в каталоге
           </p>
         </div>
-        <button 
+        <button
           className="btn btn-primary create-btn"
           onClick={handleCreateProduct}
         >
@@ -178,7 +190,7 @@ const ProductManagement = () => {
         <div className="error-message">
           <span className="error-icon">⚠️</span>
           {error}
-          <button 
+          <button
             className="error-close"
             onClick={() => setError(null)}
           >
@@ -197,7 +209,7 @@ const ProductManagement = () => {
             className="search-input"
           />
         </div>
-        
+
         <div className="filter-controls">
           <select
             value={filterCategory}

@@ -3,7 +3,7 @@ import { generateSlug } from '../../utils/transliterate';
 import './ProductForm.css';
 
 const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
-  
+
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -38,17 +38,17 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       }
     }
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showNutritionDetails, setShowNutritionDetails] = useState(false);
 
   useEffect(() => {
     if (product) {
-      console.log('ProductForm: Loading product data', product);
-      console.log('ProductForm: nutritional_info from product', product.nutritional_info);
-      
-      // Создаем дефолтную структуру nutritional_info
+      console.log(JSON.stringify(product, null, 2));
+      console.log('nutritional_info тип:', typeof product.nutritional_info);
+      console.log('nutritional_info значение:', product.nutritional_info);
+
       const defaultNutritionalInfo = {
         per_100g: {
           calories: 0,
@@ -69,22 +69,32 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         }
       };
 
-      // Мержим данные из продукта с дефолтными значениями
-      const mergedNutritionalInfo = product.nutritional_info ? {
+      // Пробуем распарсить nutritional_info если это строка
+      let rawNutrition = product.nutritional_info;
+      if (typeof rawNutrition === 'string') {
+        try {
+          rawNutrition = JSON.parse(rawNutrition);
+        } catch (e) {
+          console.warn('Failed to parse nutritional_info string:', e);
+          rawNutrition = null;
+        }
+      }
+
+      const mergedNutritionalInfo = rawNutrition ? {
         per_100g: {
-          calories: Number(product.nutritional_info?.per_100g?.calories) || 0,
-          proteins: Number(product.nutritional_info?.per_100g?.proteins) || 0,
-          fats: Number(product.nutritional_info?.per_100g?.fats) || 0,
-          carbohydrates: Number(product.nutritional_info?.per_100g?.carbohydrates) || 0,
-          fiber: Number(product.nutritional_info?.per_100g?.fiber) || 0,
-          sugar: Number(product.nutritional_info?.per_100g?.sugar) || 0,
-          salt: Number(product.nutritional_info?.per_100g?.salt) || 0,
-          sodium: Number(product.nutritional_info?.per_100g?.sodium) || 0
+          calories: parseFloat(rawNutrition?.per_100g?.calories) || 0,
+          proteins: parseFloat(rawNutrition?.per_100g?.proteins) || 0,
+          fats: parseFloat(rawNutrition?.per_100g?.fats) || 0,
+          carbohydrates: parseFloat(rawNutrition?.per_100g?.carbohydrates) || 0,
+          fiber: parseFloat(rawNutrition?.per_100g?.fiber) || 0,
+          sugar: parseFloat(rawNutrition?.per_100g?.sugar) || 0,
+          salt: parseFloat(rawNutrition?.per_100g?.salt) || 0,
+          sodium: parseFloat(rawNutrition?.per_100g?.sodium) || 0
         },
-        allergens: product.nutritional_info.allergens || [],
+        allergens: Array.isArray(rawNutrition?.allergens) ? rawNutrition.allergens : [],
         dietary_info: {
           ...defaultNutritionalInfo.dietary_info,
-          ...(product.nutritional_info.dietary_info || {})
+          ...(rawNutrition?.dietary_info || {})
         }
       } : defaultNutritionalInfo;
 
@@ -107,6 +117,12 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         is_active: product.is_active !== undefined ? product.is_active : true,
         nutritional_info: mergedNutritionalInfo
       });
+
+      // Автоматически показать КБЖУ если есть данные
+      const has = mergedNutritionalInfo.per_100g;
+      if (has.calories || has.proteins || has.fats || has.carbohydrates || mergedNutritionalInfo.allergens.length > 0) {
+        setShowNutritionDetails(true);
+      }
     }
   }, [product]);
 
@@ -114,7 +130,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (name === 'name' && !product) {
       // Auto-generate slug for new products
       setFormData(prev => ({
@@ -195,7 +211,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         <form onSubmit={handleSubmit} className="product-form">
           <div className="form-section">
             <h3>Основная информация</h3>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="name">Название товара *</label>
@@ -209,7 +225,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="slug">URL (slug) *</label>
                 <input
@@ -331,7 +347,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
 
           <div className="form-section">
             <h3>Характеристики продукта</h3>
-            
+
             <div className="checkbox-grid">
               <label className="checkbox-label">
                 <input
@@ -417,9 +433,9 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       type="number"
                       value={formData.nutritional_info.per_100g.calories}
                       onChange={(e) => {
-                          const value = e.target.value === '' ? '' : Number(e.target.value);
-                          handleNutritionChange('per_100g', 'calories', value);
-                        }}
+                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        handleNutritionChange('per_100g', 'calories', value);
+                      }}
                       min="0"
                       disabled={loading}
                     />
@@ -431,9 +447,9 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       step="0.1"
                       value={formData.nutritional_info.per_100g.proteins}
                       onChange={(e) => {
-                          const value = e.target.value === '' ? '' : Number(e.target.value);
-                          handleNutritionChange('per_100g', 'proteins', value);
-                        }}
+                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        handleNutritionChange('per_100g', 'proteins', value);
+                      }}
                       min="0"
                       disabled={loading}
                     />
@@ -445,9 +461,9 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       step="0.1"
                       value={formData.nutritional_info.per_100g.fats}
                       onChange={(e) => {
-                          const value = e.target.value === '' ? '' : Number(e.target.value);
-                          handleNutritionChange('per_100g', 'fats', value);
-                        }}
+                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        handleNutritionChange('per_100g', 'fats', value);
+                      }}
                       min="0"
                       disabled={loading}
                     />
@@ -459,9 +475,9 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                       step="0.1"
                       value={formData.nutritional_info.per_100g.carbohydrates}
                       onChange={(e) => {
-                          const value = e.target.value === '' ? '' : Number(e.target.value);
-                          handleNutritionChange('per_100g', 'carbohydrates', value);
-                        }}
+                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        handleNutritionChange('per_100g', 'carbohydrates', value);
+                      }}
                       min="0"
                       disabled={loading}
                     />
@@ -484,22 +500,22 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                   ))}
                 </div>
 
-                
+
               </div>
             )}
           </div>
 
           <div className="form-actions">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
+            <button
+              type="button"
+              className="btn btn-secondary"
               onClick={onCancel}
               disabled={loading}
             >
               Отмена
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
               disabled={loading}
             >
