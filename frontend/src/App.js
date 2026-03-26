@@ -9,6 +9,7 @@ import Footer from './components/Footer/Footer';
 import AppRoutes from './routes/AppRoutes';
 import CookieBanner from './legal/CookieBanner';
 import './App.css';
+import PheCalculator from './components/PheCalculator/PheCalculator';
 
 function App() {
   const dispatch = useDispatch();
@@ -52,6 +53,7 @@ function App() {
           <AppRoutes />
         </main>
         <Footer />
+        <PheCalculator />
         <CookieBanner />
       </div>
     </LegalInfoProvider>

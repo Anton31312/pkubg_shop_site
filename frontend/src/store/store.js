@@ -4,6 +4,7 @@ import productsReducer from './productsSlice';
 import cartReducer from './cartSlice';
 import notificationReducer from './notificationSlice';
 import articlesReducer from './articlesSlice';
+import pheReducer from './pheSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     cart: cartReducer,
     notifications: notificationReducer,
     articles: articlesReducer,
+    phe: pheReducer,
   },
 });

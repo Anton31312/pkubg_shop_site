@@ -84,7 +84,6 @@ def get_default_nutritional_info():
         "dietary_info": {
             "is_gluten_free": False,
             "is_lactose_free": False,
-            "is_lactose_free": False,
             "is_egg_free": False,
             "is_sugar_free": False,
         },
@@ -110,21 +109,50 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     
-    # Новые поля
     manufacturer = models.CharField(max_length=200, blank=True, verbose_name="Производитель")
     composition = models.TextField(blank=True, verbose_name="Состав")
     storage_conditions = models.TextField(blank=True, verbose_name="Условия хранения")
     
-    # Существующие поля
     is_gluten_free = models.BooleanField(default=False)
     is_low_protein = models.BooleanField(default=False)
     is_lactose_free = models.BooleanField(default=False)
     is_egg_free = models.BooleanField(default=False)
     nutritional_info = models.JSONField(default=get_default_nutritional_info)
     stock_quantity = models.PositiveIntegerField(default=0)
+    reserved_quantity = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def available_quantity(self):
+        """Доступное количество = на складе - зарезервировано."""
+        return max(0, self.stock_quantity - self.reserved_quantity)
+    
+    def reserve(self, quantity):
+        """Зарезервировать товар."""
+        if quantity > self.available_quantity:
+            raise ValueError(f'Недостаточно товара. Доступно: {self.available_quantity}')
+        self.reserved_quantity += quantity
+        self.save(update_fields=['reserved_quantity'])
+    
+    def release_reserve(self, quantity):
+        """Снять резерв."""
+        self.reserved_quantity = max(0, self.reserved_quantity - quantity)
+        self.save(update_fields=['reserved_quantity'])
+    
+    def deduct_stock(self, quantity):
+        """Списать со склада (при подтверждении заказа)."""
+        if quantity > self.stock_quantity:
+            raise ValueError(f'Недостаточно товара на складе')
+        self.stock_quantity -= quantity
+        self.reserved_quantity = max(0, self.reserved_quantity - quantity)
+        self.save(update_fields=['stock_quantity', 'reserved_quantity'])
+    
+    def return_stock(self, quantity):
+        """Вернуть на склад (при отмене заказа)."""
+        self.stock_quantity += quantity
+        self.save(update_fields=['stock_quantity'])
     
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided."""

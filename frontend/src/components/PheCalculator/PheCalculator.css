@@ -1,0 +1,378 @@
+/* Кнопка-переключатель */
+.phe-calculator-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #2c5530 0%, #1e3a21 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(44, 85, 48, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.phe-calculator-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(44, 85, 48, 0.5);
+}
+
+.phe-icon {
+  font-size: 1.3rem;
+}
+
+.phe-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Оверлей */
+.phe-calculator-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  padding: 20px;
+}
+
+/* Модальное окно калькулятора */
+.phe-calculator {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.phe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.phe-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #2c5530;
+}
+
+.phe-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  line-height: 1;
+}
+
+.phe-close:hover {
+  color: #333;
+}
+
+/* Прогресс */
+.phe-progress-section {
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.phe-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.phe-stat {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.phe-stat-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.phe-stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c5530;
+}
+
+.phe-stat-value.exceeded {
+  color: #dc3545;
+}
+
+.phe-limit-input {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.phe-progress-bar {
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.phe-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745, #2c5530);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.phe-progress-fill.warning {
+  background: linear-gradient(90deg, #ffc107, #fd7e14);
+}
+
+.phe-progress-fill.exceeded {
+  background: linear-gradient(90deg, #fd7e14, #dc3545);
+}
+
+.phe-progress-label {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* Пресеты */
+.phe-presets,
+.phe-manual-add {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.phe-presets h3,
+.phe-manual-add h3,
+.phe-items-header h3 {
+  font-size: 0.9rem;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.phe-preset-form,
+.phe-manual-form {
+  display: flex;
+  gap: 8px;
+}
+
+.phe-preset-form select,
+.phe-preset-form input,
+.phe-manual-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.phe-preset-form select {
+  flex: 2;
+}
+
+.phe-preset-form input,
+.phe-manual-form input[type="number"] {
+  width: 80px;
+  flex: none;
+}
+
+.phe-manual-form input[type="text"] {
+  flex: 2;
+}
+
+.phe-preset-form button,
+.phe-manual-form button {
+  background: #2c5530;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.phe-preset-form button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Список продуктов */
+.phe-items-section {
+  padding: 15px 20px;
+}
+
+.phe-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.phe-clear-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.phe-empty {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+}
+
+.phe-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.phe-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.phe-item:last-child {
+  border-bottom: none;
+}
+
+.phe-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phe-item-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.phe-item-details {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.phe-item-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.phe-item-value strong {
+  color: #2c5530;
+}
+
+.phe-item-remove {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+/* Футер */
+.phe-footer {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-radius: 0 0 16px 16px;
+}
+
+.phe-note {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0;
+  text-align: center;
+}
+
+.phe-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.phe-indicator.warning {
+  background: #ffc107;
+}
+
+.phe-indicator.danger {
+  background: #dc3545;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.phe-limit-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Мобильная версия */
+@media (max-width: 767px) {
+  .phe-calculator-toggle {
+    bottom: 70px;
+    right: 15px;
+    padding: 10px 16px;
+  }
+  
+  .phe-calculator-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+  
+  .phe-calculator {
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .phe-stats {
+    flex-wrap: wrap;
+  }
+  
+  .phe-preset-form,
+  .phe-manual-form {
+    flex-wrap: wrap;
+  }
+  
+  .phe-preset-form select,
+  .phe-manual-form input[type="text"] {
+    width: 100%;
+    flex: none;
+  }
+  
+}

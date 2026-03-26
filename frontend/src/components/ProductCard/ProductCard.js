@@ -40,9 +40,19 @@ const ProductCard = ({ product, onUpdate }) => {
         dispatch(addToLocalCart({ product, quantity: 1 }));
       }
     } catch (err) {
-      const message = err?.message || 'Ошибка добавления в корзину';
+      // err приходит из rejectWithValue
+      let message = 'Ошибка добавления в корзину';
+
+      if (err?.type === 'STOCK_UNAVAILABLE') {
+        message = `Товар недоступен. ${err.message || ''}`;
+      } else if (err?.type === 'INSUFFICIENT_STOCK') {
+        message = err.message || 'Недостаточно товара на складе';
+      } else if (err?.message) {
+        message = err.message;
+      }
+
       setCartError(message);
-      setTimeout(() => setCartError(null), 3000);
+      setTimeout(() => setCartError(null), 4000);
     } finally {
       setAddingToCart(false);
     }
@@ -66,9 +76,16 @@ const ProductCard = ({ product, onUpdate }) => {
         dispatch(addToLocalCart({ product, quantity: 1 }));
       }
     } catch (err) {
-      const message = err?.message || 'Ошибка обновления корзины';
+      let message = 'Ошибка обновления корзины';
+
+      if (err?.type === 'STOCK_UNAVAILABLE' || err?.type === 'INSUFFICIENT_STOCK') {
+        message = err.message || 'Недостаточно товара на складе';
+      } else if (err?.message) {
+        message = err.message;
+      }
+
       setCartError(message);
-      setTimeout(() => setCartError(null), 3000);
+      setTimeout(() => setCartError(null), 4000);
     } finally {
       setAddingToCart(false);
     }
@@ -133,8 +150,8 @@ const ProductCard = ({ product, onUpdate }) => {
 
   const discountPercent = showDiscount
     ? Math.round(
-        ((product.old_price - product.price) / product.old_price) * 100
-      )
+      ((product.old_price - product.price) / product.old_price) * 100
+    )
     : 0;
 
   // ═══ Рендер ═══
@@ -237,7 +254,7 @@ const ProductCard = ({ product, onUpdate }) => {
                   🛒 {addingToCart ? '...' : 'В корзину'}
                 </button>
               ) : (
-                <div 
+                <div
                   className="quantity-counter"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 >

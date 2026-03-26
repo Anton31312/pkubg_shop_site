@@ -19,7 +19,4 @@ urlpatterns = [
     path('admin/<int:order_id>/', views.admin_get_order_detail, name='admin_get_order_detail'),
     path('admin/<int:order_id>/update/', views.admin_update_order_status, name='admin_update_order_status'),
     path('admin/statistics/', views.admin_get_order_statistics, name='admin_get_order_statistics'),
-    
-    # Test endpoint
-    path('cart/test/', views.test_cart_update, name='test_cart_update'),
 ]

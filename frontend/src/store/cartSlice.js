@@ -10,7 +10,7 @@ export const fetchCart = createAsyncThunk(
       if (!auth.isAuthenticated) {
         return { items: [], total: 0, count: 0 };
       }
-      
+
       const response = await api.get('/orders/cart/');
       return response.data;
     } catch (error) {
@@ -21,28 +21,24 @@ export const fetchCart = createAsyncThunk(
 
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ productId, quantity = 1, product }, { rejectWithValue, getState, dispatch }) => {
+  async ({ productId, quantity = 1, product }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.post('/orders/cart/add/', 
+      const response = await api.post('/orders/cart/add/',
         { product_id: productId, quantity }
       );
-      
-      // Refresh cart data after adding
+
       dispatch(fetchCart());
-      
       return response.data;
     } catch (error) {
-      if (error.response?.data) {
-        // Handle server-side stock validation errors
-        const serverError = error.response.data;
-        if (serverError.type === 'STOCK_UNAVAILABLE' || serverError.type === 'INSUFFICIENT_STOCK') {
-          return rejectWithValue(serverError);
-        }
+      const serverData = error.response?.data || error?.data;
+
+      if (serverData) {
         return rejectWithValue({
-          message: serverError.error || 'Ошибка при добавлении товара в корзину',
-          type: 'SERVER_ERROR'
+          message: serverData.message || serverData.error || 'Ошибка добавления в корзину',
+          type: serverData.type || 'SERVER_ERROR'
         });
       }
+
       return rejectWithValue({
         message: 'Ошибка сети. Проверьте подключение к интернету.',
         type: 'NETWORK_ERROR'
@@ -56,13 +52,13 @@ export const updateCartItem = createAsyncThunk(
   async ({ itemId, quantity }, { rejectWithValue, getState, dispatch }) => {
     try {
       const { auth } = getState();
-      const response = await api.put('/orders/cart/update/', 
+      const response = await api.put('/orders/cart/update/',
         { item_id: itemId, quantity }
       );
-      
+
       // Refresh cart data after update
       dispatch(fetchCart());
-      
+
       return response.data;
     } catch (error) {
       if (error.response?.data) {
@@ -90,10 +86,10 @@ export const removeFromCart = createAsyncThunk(
     try {
       const { auth } = getState();
       const response = await api.delete(`/orders/cart/remove/${itemId}/`);
-      
+
       // Refresh cart data after removal
       dispatch(fetchCart());
-      
+
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -106,14 +102,14 @@ export const updateLocalCartItemAsync = createAsyncThunk(
   async ({ itemId, quantity }, { rejectWithValue, getState }) => {
     const { cart } = getState();
     const item = cart.items.find(item => item.id === itemId);
-    
+
     if (!item) {
       return rejectWithValue({
         message: 'Товар не найден в корзине',
         type: 'ITEM_NOT_FOUND'
       });
     }
-    
+
     // Check stock availability
     if (quantity > item.product.stock_quantity) {
       return rejectWithValue({
@@ -122,7 +118,7 @@ export const updateLocalCartItemAsync = createAsyncThunk(
         availableQuantity: item.product.stock_quantity
       });
     }
-    
+
     return { itemId, quantity };
   }
 );
@@ -149,11 +145,11 @@ const cartSlice = createSlice({
     addToLocalCart: (state, action) => {
       const { product, quantity = 1 } = action.payload;
       const existingItem = state.items.find(item => item.product.id === product.id);
-      
+
       // Check stock availability
       const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
       const totalRequestedQuantity = currentQuantityInCart + quantity;
-      
+
       if (totalRequestedQuantity > product.stock_quantity) {
         const availableQuantity = product.stock_quantity - currentQuantityInCart;
         if (availableQuantity <= 0) {
@@ -171,28 +167,28 @@ const cartSlice = createSlice({
           return;
         }
       }
-      
+
       // Clear any previous errors
       state.error = null;
-      
+
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        state.items.push({ 
-          id: Date.now(), 
-          product, 
+        state.items.push({
+          id: Date.now(),
+          product,
           quantity,
-          price: product.price 
+          price: product.price
         });
       }
-      
+
       state.count = state.items.reduce((sum, item) => sum + item.quantity, 0);
       state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     },
     updateLocalCartItem: (state, action) => {
       const { itemId, quantity } = action.payload;
       const item = state.items.find(item => item.id === itemId);
-      
+
       if (item) {
         // Check stock availability
         if (quantity > item.product.stock_quantity) {
@@ -205,10 +201,10 @@ const cartSlice = createSlice({
           };
           return;
         }
-        
+
         // Clear any previous errors
         state.error = null;
-        
+
         item.quantity = quantity;
         state.count = state.items.reduce((sum, item) => sum + item.quantity, 0);
         state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -297,11 +293,11 @@ const cartSlice = createSlice({
   },
 });
 
-export const { 
-  clearCart, 
+export const {
+  clearCart,
   clearCartError,
-  addToLocalCart, 
-  updateLocalCartItem, 
-  removeFromLocalCart 
+  addToLocalCart,
+  updateLocalCartItem,
+  removeFromLocalCart
 } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom';
 import { fetchProducts, fetchCategories, fetchManufacturers, setFilters, clearCurrentProduct } from '../../store/productsSlice';
 import ProductCard from '../ProductCard/ProductCard';
 import ProductFilters from './ProductFilters';
-import AdminToolbar from '../AdminToolbar/AdminToolbar';
 import useResponsive from '../../hooks/useResponsive';
 import useRouteRefresh from '../../hooks/useRouteRefresh';
 import './ProductCatalog.css';

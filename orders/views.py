@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from django.db.models import Q, Count, Sum
 
 from .models import Cart, CartItem, Order, OrderItem
@@ -27,7 +28,6 @@ def get_cart(request):
     }
     
     for item in cart.items.select_related('product').prefetch_related('product__images'):
-        # Get primary image or first available image
         primary_image = None
         if item.product.images.exists():
             primary_image = item.product.images.filter(is_primary=True).first()
@@ -45,6 +45,8 @@ def get_cart(request):
                 'is_low_protein': item.product.is_low_protein,
                 'is_lactose_free': item.product.is_lactose_free,
                 'is_egg_free': item.product.is_egg_free,
+                'stock_quantity': item.product.stock_quantity,
+                'available_quantity': item.product.available_quantity,
                 'images': [{
                     'image': request.build_absolute_uri(primary_image.image.url) if primary_image else None,
                     'alt_text': primary_image.alt_text if primary_image else item.product.name,
@@ -62,7 +64,7 @@ def get_cart(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
-    """Add item to cart."""
+    """Add item to cart with stock reservation."""
     product_id = request.data.get('product_id')
     quantity = request.data.get('quantity', 1)
     
@@ -87,20 +89,45 @@ def add_to_cart(request):
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
-    # Check stock availability and limit quantity
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    with transaction.atomic():
+        # Блокируем продукт для атомарного обновления
+        product = Product.objects.select_for_update().get(id=product_id)
+        
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        
+        # Текущее количество в корзине
+        existing_item = cart.items.filter(product=product).first()
+        current_in_cart = existing_item.quantity if existing_item else 0
+        
+        # Сколько доступно для добавления
+        available = product.available_quantity
+        actual_quantity = min(quantity, available)
+        
+        if actual_quantity <= 0:
+            return Response(
+                {
+                    'error': 'Товар недоступен для добавления',
+                    'message': f'Доступно: {available} шт.',
+                    'type': 'STOCK_UNAVAILABLE'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Резервируем товар
+        product.reserve(actual_quantity)
+        
+        # Добавляем в корзину
+        if existing_item:
+            existing_item.quantity += actual_quantity
+            existing_item.save()
+        else:
+            CartItem.objects.create(
+                cart=cart,
+                product=product,
+                quantity=actual_quantity
+            )
     
-    # Get current quantity in cart for this product
-    existing_item = cart.items.filter(product=product).first()
-    current_quantity_in_cart = existing_item.quantity if existing_item else 0
-    available_quantity = product.stock_quantity - current_quantity_in_cart
-    
-    # Limit the quantity to what's actually available
-    actual_quantity = min(quantity, available_quantity)
-    
-    if actual_quantity > 0:
-        cart.add_item(product, actual_quantity)
-    # If actual_quantity is 0 or less, just don't add anything (no error)
+    cart.refresh_from_db()
     
     return Response({
         'message': 'Item added to cart',
@@ -112,14 +139,10 @@ def add_to_cart(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_cart_item(request):
-    """Update quantity of item in cart."""
+    """Update quantity of item in cart with reservation adjustment."""
     item_id = request.data.get('item_id')
     product_id = request.data.get('product_id')
     quantity = request.data.get('quantity')
-    
-    # Debug logging
-    print(f"Update cart item - item_id: {item_id}, product_id: {product_id}, quantity: {quantity}")
-    print(f"Request data: {request.data}")
     
     if not item_id and not product_id:
         return Response(
@@ -148,27 +171,64 @@ def update_cart_item(request):
     
     cart, created = Cart.objects.get_or_create(user=request.user)
     
-    # Handle update by item_id or product_id
-    if item_id:
-        try:
-            cart_item = CartItem.objects.get(id=item_id, cart=cart)
-            product = cart_item.product
-        except CartItem.DoesNotExist:
-            return Response(
-                {'error': 'Cart item not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-    else:
-        product = get_object_or_404(Product, id=product_id)
+    with transaction.atomic():
+        # Находим элемент корзины
+        if item_id:
+            try:
+                cart_item = CartItem.objects.select_related('product').get(id=item_id, cart=cart)
+            except CartItem.DoesNotExist:
+                return Response(
+                    {'error': 'Cart item not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            product_obj = get_object_or_404(Product, id=product_id)
+            try:
+                cart_item = CartItem.objects.select_related('product').get(product=product_obj, cart=cart)
+            except CartItem.DoesNotExist:
+                return Response(
+                    {'error': 'Cart item not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        product = Product.objects.select_for_update().get(id=cart_item.product.id)
+        old_quantity = cart_item.quantity
+        diff = quantity - old_quantity
+        
+        if quantity == 0:
+            # Удаление — снимаем весь резерв
+            product.release_reserve(old_quantity)
+            cart_item.delete()
+            message = 'Item removed from cart'
+        elif diff > 0:
+            # Увеличение — резервируем дополнительно
+            available = product.available_quantity
+            actual_diff = min(diff, available)
+            
+            if actual_diff <= 0:
+                return Response(
+                    {
+                        'error': 'Недостаточно товара',
+                        'message': f'Доступно: {available} шт.',
+                        'type': 'INSUFFICIENT_STOCK'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            product.reserve(actual_diff)
+            cart_item.quantity = old_quantity + actual_diff
+            cart_item.save()
+            message = 'Cart updated'
+        elif diff < 0:
+            # Уменьшение — снимаем часть резерва
+            product.release_reserve(abs(diff))
+            cart_item.quantity = quantity
+            cart_item.save()
+            message = 'Cart updated'
+        else:
+            message = 'No changes'
     
-    if quantity == 0:
-        cart.remove_item(product)
-        message = 'Item removed from cart'
-    else:
-        # Limit quantity to available stock instead of returning error
-        actual_quantity = min(quantity, product.stock_quantity)
-        cart.update_item_quantity(product, actual_quantity)
-        message = 'Cart updated'
+    cart.refresh_from_db()
     
     return Response({
         'message': message,
@@ -180,41 +240,118 @@ def update_cart_item(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def remove_from_cart(request, item_id):
-    """Remove item from cart."""
+    """Remove item from cart and release reservation."""
     cart, created = Cart.objects.get_or_create(user=request.user)
     
-    try:
-        cart_item = CartItem.objects.get(id=item_id, cart=cart)
-        product = cart_item.product
-        removed = cart.remove_item(product)
-    except CartItem.DoesNotExist:
-        removed = False
-    
-    if removed:
-        message = 'Item removed from cart'
-    else:
-        message = 'Item not found in cart'
+    with transaction.atomic():
+        try:
+            cart_item = CartItem.objects.select_related('product').get(id=item_id, cart=cart)
+            product = Product.objects.select_for_update().get(id=cart_item.product.id)
+            
+            # Снимаем резерв
+            product.release_reserve(cart_item.quantity)
+            cart_item.delete()
+            removed = True
+        except CartItem.DoesNotExist:
+            removed = False
     
     return Response({
-        'message': message,
+        'message': 'Item removed from cart' if removed else 'Item not found in cart',
         'count': cart.total_items,
         'total': float(cart.total_amount)
     })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_order(request):
+    """Create order from cart — deduct stock, clear reservations."""
+    import uuid
+    
+    try:
+        cart = Cart.objects.get(user=request.user)
+        
+        if not cart.items.exists():
+            return Response(
+                {'error': 'Cart is empty'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        shipping_address = request.data.get('shipping_address', '')
+        delivery_method = request.data.get('delivery_method', 'courier')
+        notes = request.data.get('notes', '')
+        
+        if not shipping_address:
+            return Response(
+                {'error': 'Shipping address is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        with transaction.atomic():
+            # Создаём заказ
+            order = Order.objects.create(
+                user=request.user,
+                order_number=f'ORD-{uuid.uuid4().hex[:8].upper()}',
+                total_amount=cart.total_amount,
+                shipping_address=shipping_address,
+                delivery_method=delivery_method,
+                notes=notes,
+                status='processing',
+                payment_status='pending'
+            )
+            
+            # Переносим товары из корзины в заказ и списываем со склада
+            for cart_item in cart.items.select_related('product'):
+                product = Product.objects.select_for_update().get(id=cart_item.product.id)
+                
+                # Списываем со склада (и снимаем резерв)
+                product.deduct_stock(cart_item.quantity)
+                
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=cart_item.quantity,
+                    price=product.price
+                )
+            
+            # Очищаем корзину
+            cart.items.all().delete()
+        
+        return Response({
+            'order_id': order.id,
+            'order_number': order.order_number,
+            'total_amount': float(order.total_amount),
+            'status': order.status,
+            'payment_status': order.payment_status
+        })
+        
+    except Cart.DoesNotExist:
+        return Response(
+            {'error': 'Cart not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ValueError as e:
+        return Response(
+            {'error': str(e)}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to create order: {str(e)}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_orders(request):
     """Get user's order history."""
-    from .models import Order
-    
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
     orders_data = []
     for order in orders:
         order_items = []
         for item in order.items.select_related('product').prefetch_related('product__images'):
-            # Get primary image or first available image
             primary_image = None
             if item.product.images.exists():
                 primary_image = item.product.images.filter(is_primary=True).first()
@@ -257,115 +394,24 @@ def get_user_orders(request):
     })
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_order(request):
-    """Create order from cart."""
-    from .models import Order, OrderItem
-    import uuid
-    
-    try:
-        cart = Cart.objects.get(user=request.user)
-        
-        if not cart.items.exists():
-            return Response(
-                {'error': 'Cart is empty'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Get order data from request
-        shipping_address = request.data.get('shipping_address', '')
-        delivery_method = request.data.get('delivery_method', 'courier')
-        notes = request.data.get('notes', '')
-        
-        if not shipping_address:
-            return Response(
-                {'error': 'Shipping address is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Create order
-        order = Order.objects.create(
-            user=request.user,
-            order_number=f'ORD-{uuid.uuid4().hex[:8].upper()}',
-            total_amount=cart.total_amount,
-            shipping_address=shipping_address,
-            delivery_method=delivery_method,
-            notes=notes,
-            status='pending',
-            payment_status='pending'
-        )
-        
-        # Create order items from cart
-        for cart_item in cart.items.all():
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                price=cart_item.product.price
-            )
-        
-        # Clear cart
-        cart.items.all().delete()
-        
-        return Response({
-            'order_id': order.id,
-            'order_number': order.order_number,
-            'total_amount': float(order.total_amount),
-            'status': order.status,
-            'payment_status': order.payment_status
-        })
-        
-    except Cart.DoesNotExist:
-        return Response(
-            {'error': 'Cart not found'}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception as e:
-        return Response(
-            {'error': f'Failed to create order: {str(e)}'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def test_cart_update(request):
-    """Test endpoint for debugging cart updates."""
-    print("=== TEST CART UPDATE ===")
-    print(f"Request method: {request.method}")
-    print(f"Request data: {request.data}")
-    print(f"Request user: {request.user}")
-    
-    return Response({
-        'message': 'Test successful',
-        'received_data': request.data,
-        'user': str(request.user)
-    })
-
-
+# ═══ ADMIN VIEWS ═══
 
 @api_view(['GET'])
 @permission_classes([IsAdminOrManager])
 def admin_get_all_orders(request):
-    """
-    Get all orders for admin/manager view.
-    Supports filtering by status, payment_status, and search by order_number or user email.
-    """
+    """Get all orders for admin/manager view."""
     orders = Order.objects.select_related('user').prefetch_related(
         'items', 'items__product', 'items__product__images'
     ).order_by('-created_at')
     
-    # Filter by status
     status_filter = request.query_params.get('status')
     if status_filter:
         orders = orders.filter(status=status_filter)
     
-    # Filter by payment status
     payment_status_filter = request.query_params.get('payment_status')
     if payment_status_filter:
         orders = orders.filter(payment_status=payment_status_filter)
     
-    # Search by order number or user email
     search = request.query_params.get('search')
     if search:
         orders = orders.filter(
@@ -375,7 +421,6 @@ def admin_get_all_orders(request):
             Q(user__last_name__icontains=search)
         )
     
-    # Pagination
     page = int(request.query_params.get('page', 1))
     page_size = int(request.query_params.get('page_size', 20))
     start = (page - 1) * page_size
@@ -398,10 +443,7 @@ def admin_get_all_orders(request):
 @api_view(['GET'])
 @permission_classes([IsAdminOrManagerOrOwner])
 def admin_get_order_detail(request, order_id):
-    """
-    Get detailed information about a specific order.
-    Admins/managers can view any order, users can only view their own.
-    """
+    """Get detailed information about a specific order."""
     order = get_object_or_404(
         Order.objects.select_related('user').prefetch_related(
             'items', 'items__product', 'items__product__images'
@@ -409,7 +451,6 @@ def admin_get_order_detail(request, order_id):
         id=order_id
     )
     
-    # Check permissions
     if request.user.role not in ['admin', 'manager'] and order.user != request.user:
         return Response(
             {'error': 'У вас нет прав для просмотра этого заказа'},
@@ -423,23 +464,38 @@ def admin_get_order_detail(request, order_id):
 @api_view(['PATCH'])
 @permission_classes([IsAdminOrManager])
 def admin_update_order_status(request, order_id):
-    """
-    Update order status or payment status.
-    Only admins and managers can update orders.
-    """
+    """Update order status with stock management."""
     order = get_object_or_404(Order, id=order_id)
+    old_status = order.status
     
-    # Update status if provided
     new_status = request.data.get('status')
     if new_status and new_status in dict(Order.ORDER_STATUS_CHOICES):
-        order.status = new_status
+        # Если заказ отменяется — вернуть товары на склад
+        if new_status == 'cancelled' and old_status != 'cancelled':
+            with transaction.atomic():
+                for item in order.items.select_related('product'):
+                    product = Product.objects.select_for_update().get(id=item.product.id)
+                    product.return_stock(item.quantity)
+                
+                order.status = new_status
+                order.save()
+        else:
+            order.status = new_status
     
-    # Update payment status if provided
     new_payment_status = request.data.get('payment_status')
     if new_payment_status and new_payment_status in dict(Order.PAYMENT_STATUS_CHOICES):
-        order.payment_status = new_payment_status
+        # Если возврат — вернуть товары на склад
+        if new_payment_status == 'refunded' and order.payment_status != 'refunded':
+            with transaction.atomic():
+                for item in order.items.select_related('product'):
+                    product = Product.objects.select_for_update().get(id=item.product.id)
+                    product.return_stock(item.quantity)
+                
+                order.payment_status = new_payment_status
+                order.save()
+        else:
+            order.payment_status = new_payment_status
     
-    # Update delivery tracking if provided
     delivery_tracking = request.data.get('delivery_tracking')
     if delivery_tracking is not None:
         order.delivery_tracking = delivery_tracking
@@ -456,32 +512,25 @@ def admin_update_order_status(request, order_id):
 @api_view(['GET'])
 @permission_classes([IsAdminOrManager])
 def admin_get_order_statistics(request):
-    """
-    Get order statistics for admin/manager dashboard.
-    """
+    """Get order statistics for admin dashboard."""
     from decimal import Decimal
     
-    # Total orders
     total_orders = Order.objects.count()
     
-    # Orders by status
     orders_by_status = Order.objects.values('status').annotate(
         count=Count('id')
     ).order_by('status')
     
-    # Orders by payment status
     orders_by_payment_status = Order.objects.values('payment_status').annotate(
         count=Count('id')
     ).order_by('payment_status')
     
-    # Total revenue (only paid orders)
     total_revenue = Order.objects.filter(
         payment_status='paid'
     ).aggregate(
         total=Sum('total_amount')
     )['total'] or Decimal('0.00')
     
-    # Recent orders (last 10)
     recent_orders = Order.objects.select_related('user').order_by('-created_at')[:10]
     recent_orders_data = AdminOrderSerializer(recent_orders, many=True).data
     
