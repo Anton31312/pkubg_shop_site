@@ -398,6 +398,12 @@ else:
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
+# ============================================================================
+# VK Notifications
+# ============================================================================
+VK_GROUP_TOKEN = config('VK_GROUP_TOKEN', default='')
+VK_ADMIN_IDS = config('VK_ADMIN_IDS', default='', cast=lambda v: [int(x.strip()) for x in v.split(',') if x.strip()])
+
 # Создаем директорию для логов если её нет
 import os
 logs_dir = BASE_DIR / 'logs'

@@ -8,12 +8,16 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Q, Count, Sum
+import logging
 
 from .models import Cart, CartItem, Order, OrderItem
 from .permissions import IsAdminOrManager, IsAdminOrManagerOrOwner
 from .serializers import AdminOrderSerializer
 from products.models import Product
+from .notifications import notify_new_order
 
+
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -316,7 +320,14 @@ def create_order(request):
             
             # Очищаем корзину
             cart.items.all().delete()
-        
+
+        # ═══ Уведомление в ВК ═══
+        try:
+            notify_new_order(order)
+        except Exception as e:
+            logger.error(f'VK notification failed: {e}')
+        # Не ломаем заказ если ВК не работает
+
         return Response({
             'order_id': order.id,
             'order_number': order.order_number,
@@ -324,23 +335,17 @@ def create_order(request):
             'status': order.status,
             'payment_status': order.payment_status
         })
-        
+
     except Cart.DoesNotExist:
-        return Response(
-            {'error': 'Cart not found'}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
     except ValueError as e:
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response(
-            {'error': f'Failed to create order: {str(e)}'}, 
+            {'error': f'Failed to create order: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
+        
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
